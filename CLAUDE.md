@@ -12,7 +12,7 @@ contact links. This is a static site: no backend, no build step, no framework.
 ## Tech stack & hosting
 
 - Plain HTML / CSS / JavaScript. No bundler, no package.json, no dependencies.
-- Font is loaded from Google Fonts (Inter) via a `<link>` in `index.html`.
+- Font is loaded from Google Fonts (Space Grotesk) via a `<link>` in `index.html`.
 - Deploys to **Vercel** as a static site — pushing to the connected Git repo is
   the entire deploy process. Do not introduce a build step (e.g. a framework,
   a bundler) without discussing it first; the whole point of this stack is
@@ -50,8 +50,9 @@ token value — don't hardcode a new color/spacing value at the point of use.
 - **Accent**: a single electric blue, `#3b82f6` (`--accent`), used sparingly
   for headings, tags, hover states, and the icon in the accordion toggle.
   Do not introduce a second accent color.
-- **Type**: Inter (geometric sans) for everything — headings and body. No
-  serif, no monospace.
+- **Type**: Space Grotesk (sharp, geometric sans) for everything — headings
+  and body. No serif, no monospace. Max usable weight is 700 (Space Grotesk
+  has no 800) — don't request a heavier weight.
 - **Spacing**: an 8px-based scale (`--space-1` through `--space-8`). Use these
   variables instead of arbitrary pixel values.
 - **Motion**: subtle only. Hover states, a fade/slide on the project-category
@@ -62,6 +63,12 @@ token value — don't hardcode a new color/spacing value at the point of use.
   280px`) for credentials, and a main content column for the hero and
   projects. Below `800px` viewport width, the sidebar stacks above the main
   content (see the media query at the bottom of `styles.css`).
+- **Sidebar fits in one viewport height, no scrollbar**: `.sidebar` is
+  `height: 100vh; overflow: hidden` with content vertically centered. This
+  only works because each credential entry is two compact lines (org name
+  bold on top, role/degree below, no dates). If more entries are added later
+  than fit, either trim entries or shrink spacing tokens — don't switch
+  `overflow` back to `auto`/`scroll`, that was explicitly removed.
 
 ## Content conventions
 
@@ -71,8 +78,13 @@ token value — don't hardcode a new color/spacing value at the point of use.
   an industry (e.g. fintech, payments) or a job function. This was an
   explicit choice made with the site owner. If asked to revise the headline,
   preserve that constraint unless told otherwise.
-- Sidebar credentials (Education, Work History) are ordered **most recent
-  first**.
+- Sidebar section order is **Work History, then Education** (deliberate —
+  don't swap it back). Within each section, entries are ordered most-recent
+  first.
+- Credential entries show **no dates** and only two lines: the
+  organization/institution name (bold), then the role or degree below it. No
+  extra detail line (e.g. the old "B2C and B2B internet companies" line under
+  GrowthX was intentionally removed to keep entries compact).
 - Project blurbs should be short (1–2 sentences) — the card is a teaser, not
   the full case study.
 - Tone throughout: crisp, professional, no filler adjectives.
@@ -109,8 +121,11 @@ embed URL, and set `detail: { type: 'canva', embedUrl: '<that URL>' }`.
 
 **To update credentials (education/work history):** edit the `<li
 class="timeline-item">` entries directly in `index.html`, inside
-`.sidebar-section`. There is no data file for these — they're simple enough
-to stay as markup. Keep entries ordered most-recent-first.
+`.sidebar-section`. Each item is `.timeline-org` (bold, top) then
+`.timeline-title` (role/degree, below) — no dates. There is no data file for
+these — they're simple enough to stay as markup. Keep entries ordered
+most-recent-first within their section, and keep Work History above
+Education.
 
 **To update contact info:** edit the three links inside `<footer
 class="site-footer">` in `index.html`.

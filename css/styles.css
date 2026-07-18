@@ -14,7 +14,7 @@
   --accent-soft: rgba(59, 130, 246, 0.14);
   --accent-border: rgba(59, 130, 246, 0.35);
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -65,14 +65,17 @@ ul { list-style: none; margin: 0; padding: 0; }
   position: sticky;
   top: 0;
   height: 100vh;
-  overflow-y: auto;
-  padding: var(--space-7) var(--space-5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-5);
   border-right: 1px solid var(--border);
   background: var(--bg-elevated);
 }
 
 .sidebar-section + .sidebar-section {
-  margin-top: var(--space-7);
+  margin-top: var(--space-6);
 }
 
 .sidebar-heading {
@@ -81,12 +84,12 @@ ul { list-style: none; margin: 0; padding: 0; }
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent);
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-3);
 }
 
 .timeline-item {
-  padding-bottom: var(--space-5);
-  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
   border-bottom: 1px solid var(--border);
 }
 
@@ -96,30 +99,18 @@ ul { list-style: none; margin: 0; padding: 0; }
   padding-bottom: 0;
 }
 
-.timeline-dates {
-  font-size: 12px;
-  color: var(--text-faint);
-  margin-bottom: var(--space-1);
-  font-variant-numeric: tabular-nums;
-}
-
-.timeline-title {
+.timeline-org {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.4;
   color: var(--text);
 }
 
-.timeline-org {
+.timeline-title {
   font-size: 13px;
   color: var(--text-muted);
   margin-top: 2px;
-}
-
-.timeline-detail {
-  font-size: 12px;
-  color: var(--text-faint);
-  margin-top: var(--space-1);
+  line-height: 1.4;
 }
 
 /* ---------------------------------------------------------
@@ -156,7 +147,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .name {
   font-size: clamp(32px, 4vw, 44px);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.1;
   margin: 0 0 var(--space-4);
