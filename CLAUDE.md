@@ -99,7 +99,18 @@ token value — don't hardcode a new color/spacing value at the point of use.
   padding when touching `.main`.
 - **Layout**: no sidebar anymore (removed when the site moved from
   single-page to multi-page). Every page is a single centered content column,
-  `max-width: 1000px`, under the fixed nav.
+  `max-width: var(--content-max-width)` (currently `1240px`), under the
+  fixed nav. This only widens the *layout* (grids like project cards,
+  About's two-column experience/education, hobby cards) — text elements
+  (`.headline`, `.about-intro-text p`, `.contact-headline`) keep their own
+  character-based `max-width` so paragraph line length stays readable
+  regardless of this value.
+- **Sticky footer**: `body` is a flex column (`min-height: 100vh`), `.main`
+  carries `flex: 1 0 auto`, and `.site-footer` has `flex-shrink: 0`. This
+  keeps the footer pinned to the bottom of the viewport on short pages
+  (Home, About, Contact) instead of floating partway up on tall screens —
+  don't change `.main`'s `flex` or `body`'s `display: flex` without
+  preserving this behavior.
 - **Home has no photo.** It was removed by explicit request; the hero is
   currently a single text column (eyebrow, name, headline, role-highlight
   box). This is an interim state — the site owner wasn't sure what, if
