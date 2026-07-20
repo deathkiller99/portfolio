@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work — Sai Harsha Malla</title>
+<meta name="description" content="Work, school, and personal projects by Sai Harsha Malla.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-wordmark" href="index.html">Portfolio</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link is-active" href="work.html">Work</a>
+    <a class="nav-link" href="about.html">About</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+  </div>
+</nav>
+
+<main class="main">
+  <section class="projects" aria-label="Projects">
+    <h2 class="projects-heading">What I&rsquo;ve been working on lately</h2>
+
+    <div class="category reveal" data-category="work">
+      <button class="category-toggle" aria-expanded="false" aria-controls="panel-work">
+        <span class="category-label">Work Stuff</span>
+        <span class="category-icon" aria-hidden="true"></span>
+      </button>
+      <div class="category-panel" id="panel-work" data-panel="work" hidden></div>
+    </div>
+
+    <div class="category reveal" data-category="school">
+      <button class="category-toggle" aria-expanded="false" aria-controls="panel-school">
+        <span class="category-label">ESSEC &amp; GrowthX</span>
+        <span class="category-icon" aria-hidden="true"></span>
+      </button>
+      <div class="category-panel" id="panel-school" data-panel="school" hidden></div>
+    </div>
+
+    <div class="category reveal" data-category="personal">
+      <button class="category-toggle" aria-expanded="false" aria-controls="panel-personal">
+        <span class="category-label">Personal Projects</span>
+        <span class="category-icon" aria-hidden="true"></span>
+      </button>
+      <div class="category-panel" id="panel-personal" data-panel="personal" hidden></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <a href="https://www.linkedin.com/in/saiharshamalla/" target="_blank" rel="noopener">LinkedIn</a>
+  <span class="footer-sep">&middot;</span>
+  <a href="tel:+33745612885">+33 (0)745612885</a>
+  <span class="footer-sep">&middot;</span>
+  <a href="mailto:harsha.malla@essec.edu">harsha.malla@essec.edu</a>
+</footer>
+
+<script src="js/projects-data.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

@@ -4,41 +4,62 @@ Guidance for Claude Code (or any future contributor) working in this repository.
 
 ## Project overview
 
-A personal portfolio site for **Sai Harsha Malla**, aimed at recruiters. Its core
-job is to showcase three categories of projects — **Work**, **School**, and
-**Personal** — alongside a credentials sidebar (education, work history) and
-contact links. This is a static site: no backend, no build step, no framework.
+A personal portfolio site for **Sai Harsha Malla**, aimed at recruiters. It's a
+**multi-page static site** with four pages — **Home**, **Work**, **About**,
+**Contact** — linked by a fixed top nav. Work's core job is to showcase three
+categories of projects (**Work**, **School**, **Personal**); About holds
+credentials (education, work experience), an intro, institution logos, and
+personal interests; Contact holds the three contact methods. No backend, no
+build step, no framework.
 
 ## Tech stack & hosting
 
 - Plain HTML / CSS / JavaScript. No bundler, no package.json, no dependencies.
-- Font is loaded from Google Fonts (Space Grotesk) via a `<link>` in `index.html`.
+- Font is loaded from Google Fonts (Space Grotesk) via a `<link>` in each page's `<head>`.
 - Deploys to **Vercel** as a static site — pushing to the connected Git repo is
   the entire deploy process. Do not introduce a build step (e.g. a framework,
   a bundler) without discussing it first; the whole point of this stack is
   zero-friction editing and deployment.
-- Open `index.html` directly in a browser (or serve the folder with any static
-  file server) to preview changes locally. No install step is required.
+- Open any `.html` file directly in a browser (or serve the folder with any
+  static file server) to preview changes locally. No install step is required.
 
 ## File structure
 
 ```
 Portfolio/
-├── index.html              # all page markup
+├── index.html              # Home: hero (no photo), role/ESSEC highlight, CTA to Work
+├── work.html                # Work: "What I've been working on lately" + project accordion
+├── about.html                 # About: photo, intro, experience/education (with logos), hobbies
+├── contact.html                # Contact: headline + contact rows (no footer on this page)
 ├── css/
-│   └── styles.css          # design tokens + all styling
+│   └── styles.css          # design tokens + all styling, shared across all four pages
 ├── js/
-│   ├── projects-data.js     # project content (edit this to add/change projects)
-│   └── script.js            # rendering, accordion, scroll-reveal — logic only
+│   ├── projects-data.js     # project content (edit this to add/change projects) — only used by work.html
+│   └── script.js            # rendering, accordion, scroll-reveal — logic only, included on every page
 ├── assets/
-│   └── photo-placeholder.svg
+│   └── photo.jpg
 └── CLAUDE.md
 ```
 
-Keep this separation: **content lives in `projects-data.js` and in the
-credential markup in `index.html`; logic lives in `script.js`; visual styling
-lives in `styles.css`.** Don't hardcode project content into `script.js`, and
-don't inline styles into `index.html`.
+Keep this separation: **content lives in `projects-data.js` and directly in
+each page's markup; logic lives in `script.js`; visual styling lives in
+`styles.css`.** Don't hardcode project content into `script.js`, and don't
+inline styles into the HTML.
+
+`script.js` is included on every page but only acts on elements that exist —
+`renderCategory()` no-ops if its panel isn't on the page, `initAccordion()`
+and `initScrollReveal()` iterate over whatever `.category`/`.reveal` elements
+are present (zero or more). This is why the same unmodified script works
+across Home/Work/About/Contact without per-page branching.
+
+### Nav is duplicated across all four pages — keep it in sync
+
+There's no templating, so the nav block is copy-pasted into each `.html`
+file, differing only in which link carries `class="nav-link is-active"`.
+**If you change the nav (add a page, rename a link, restyle it), you must
+edit all four files identically.** This was an explicit tradeoff — the
+alternative (fetching a shared nav partial via JS) would break "open the
+HTML file directly, no server needed," which was worth keeping.
 
 ## Design system
 
@@ -48,27 +69,43 @@ token value — don't hardcode a new color/spacing value at the point of use.
 
 - **Theme**: dark. Background `#0a0b0f`, elevated surfaces `#13151c`.
 - **Accent**: a single electric blue, `#3b82f6` (`--accent`), used sparingly
-  for headings, tags, hover states, and the icon in the accordion toggle.
-  Do not introduce a second accent color.
+  for headings, tags, hover states, the accordion icon, the active nav link,
+  and the CTA button. Do not introduce a second accent color.
 - **Type**: Space Grotesk (sharp, geometric sans) for everything — headings
   and body. No serif, no monospace. Max usable weight is 700 (Space Grotesk
   has no 800) — don't request a heavier weight.
 - **Spacing**: an 8px-based scale (`--space-1` through `--space-8`). Use these
   variables instead of arbitrary pixel values.
-- **Motion**: subtle only. Hover states, a fade/slide on the project-category
-  accordion, and a soft scroll-reveal on the hero section. Do not add
+- **Motion**: subtle only. Hover states (card lift + soft accent glow, footer
+  link underline, contact-row lift, CTA button lift), a fade/slide on the
+  project-category accordion, a staggered fade-up on project cards when a
+  category opens, and a soft scroll-reveal (`.reveal` class, applied to the
+  hero, `.category` boxes, and the About-page sections, driven by
+  `initScrollReveal()` in `script.js`) as they enter the viewport. Do not add
   attention-grabbing or decorative animation — it should read as restrained
   and professional, not flashy.
-- **Layout**: a two-column grid — a sticky left sidebar (`--sidebar-width:
-  280px`) for credentials, and a main content column for the hero and
-  projects. Below `800px` viewport width, the sidebar stacks above the main
-  content (see the media query at the bottom of `styles.css`).
-- **Sidebar fits in one viewport height, no scrollbar**: `.sidebar` is
-  `height: 100vh; overflow: hidden` with content vertically centered. This
-  only works because each credential entry is two compact lines (org name
-  bold on top, role/degree below, no dates). If more entries are added later
-  than fit, either trim entries or shrink spacing tokens — don't switch
-  `overflow` back to `auto`/`scroll`, that was explicitly removed.
+- **Ambient background**: a fixed, very low-opacity radial-gradient glow
+  (`body::before`) plus a faint grain texture (`body::after`, an SVG
+  turbulence data URI at ~3.5% opacity) sit behind all content on every page.
+  These are deliberately subtle — if either becomes visually noticeable
+  rather than atmospheric, that's a bug, not a feature to lean into further.
+- **Nav**: fixed to the top of the viewport on every page (`--nav-height:
+  72px`), translucent + blurred background, wordmark ("Portfolio", in
+  accent color) on the left, Home/Work/About/Contact links on the right,
+  active page indicated by an accent underline. Because it's fixed, every
+  page's main content column (`.main`) carries top padding of
+  `calc(var(--nav-height) + var(--space-7))` to clear it — don't remove that
+  padding when touching `.main`.
+- **Layout**: no sidebar anymore (removed when the site moved from
+  single-page to multi-page). Every page is a single centered content column,
+  `max-width: 1000px`, under the fixed nav.
+- **Home has no photo.** It was removed by explicit request; the hero is
+  currently a single text column (eyebrow, name, headline, role-highlight
+  box). This is an interim state — the site owner wasn't sure what, if
+  anything, should fill that visual space, so don't assume the current
+  single-column hero is the final call; a follow-up design pass may add
+  something back (that's a design decision for the owner, not one to make
+  unilaterally).
 
 ## Content conventions
 
@@ -78,21 +115,24 @@ token value — don't hardcode a new color/spacing value at the point of use.
   an industry (e.g. fintech, payments) or a job function. This was an
   explicit choice made with the site owner. If asked to revise the headline,
   preserve that constraint unless told otherwise.
-- Sidebar section order is **Work History, then Education** (deliberate —
-  don't swap it back). Within each section, entries are ordered most-recent
-  first.
-- Credential entries show **no dates** and only two lines: the
-  organization/institution name (bold), then the role or degree below it. No
-  extra detail line (e.g. the old "B2C and B2B internet companies" line under
-  GrowthX was intentionally removed to keep entries compact).
+- Credential entries (Experience, Education — on the About page) show **no
+  dates** and only two lines: the organization/institution name (bold), then
+  the role or degree below it. No extra detail line. Order is
+  most-recent-first within each section, and Experience is listed before
+  Education. Each entry also carries a small logo tile (`.timeline-logo`)
+  to its left — see the placeholder note below.
 - Project blurbs should be short (1–2 sentences) — the card is a teaser, not
   the full case study.
 - Tone throughout: crisp, professional, no filler adjectives.
+- Never invent facts about the site owner (hobbies, project details, bio
+  copy) to fill a gap — use an explicit bracketed placeholder (e.g. `[Add
+  hobby/interest]`) instead, so it's obvious what still needs real content.
 
 ## Project data model
 
 Projects are plain JS objects in `js/projects-data.js`, grouped into three
-arrays: `window.PROJECTS.work`, `.school`, `.personal`. Shape:
+arrays: `window.PROJECTS.work`, `.school`, `.personal`. Only `work.html`
+includes this file and renders them. Shape:
 
 ```js
 {
@@ -119,27 +159,52 @@ to change.
 **To add a Canva-embedded project:** in Canva, use *Share → Embed* to get the
 embed URL, and set `detail: { type: 'canva', embedUrl: '<that URL>' }`.
 
-**To update credentials (education/work history):** edit the `<li
-class="timeline-item">` entries directly in `index.html`, inside
-`.sidebar-section`. Each item is `.timeline-org` (bold, top) then
-`.timeline-title` (role/degree, below) — no dates. There is no data file for
-these — they're simple enough to stay as markup. Keep entries ordered
-most-recent-first within their section, and keep Work History above
-Education.
+Every card gets a thumbnail (`renderThumb()` in `script.js`): a `canva`-type
+project's embed renders directly as the thumbnail; anything else gets a
+generated placeholder tile (a large faint letter, taken from the project's
+first tag). There's no `image` field in the data model yet — if you want a
+real screenshot on a text-type project, that's the place to extend the shape
+and `renderThumb()` together.
 
-**To update contact info:** edit the three links inside `<footer
-class="site-footer">` in `index.html`.
+**To update credentials (education/work experience):** edit the `<li
+class="timeline-item">` entries directly in `about.html`, inside
+`.about-columns`. Each item is `.timeline-logo` (small logo/monogram tile),
+then a `.timeline-text` wrapper containing `.timeline-org` (bold) and
+`.timeline-title` (role/degree, below) — no dates. There is no data file for
+these — they're simple enough to stay as markup.
+
+**About the `.timeline-logo` tiles:** these are text placeholders (short
+abbreviations — "WL", "ICICI", "ESSEC", "GX", "MIT") until the site owner
+provides real logo image files. When real logos are supplied, swap the tile
+content for an `<img>` (keep the 40×40 `.timeline-logo` box as the frame) —
+don't leave both a text abbreviation and an image.
+
+**To update contact info:** edit the links inside `<footer
+class="site-footer">` (present on Home, Work, About — **not** Contact,
+which has its own dedicated `.contact-row` list instead) **and** the
+`.contact-row` entries in `contact.html`. The same three values appear in
+both places; update them together.
 
 ## Current state / placeholders
 
 - All six projects in `js/projects-data.js` (2 per category) are
   **placeholders** — titles, blurbs, and Canva embed URLs need to be replaced
   with real content.
-- The hero photo (`assets/photo-placeholder.svg`) is a placeholder silhouette.
-  Replace it with a real headshot (update the `src` in `index.html`'s
-  `.hero-photo img`; keep it roughly square, ~220×220 or larger).
-- Real content already wired in: name, headline, education, work history, and
-  footer contact links (LinkedIn, phone, email) all reflect real data.
+- **About page is a structural skeleton, not final design.** The user is
+  deferring About's real content and visual design to a dedicated follow-up
+  session once they share their real intro copy. Currently placeholder: the
+  intro paragraph, the `.timeline-logo` text abbreviations (real logo image
+  files to come), and the "Outside of Work" hobbies tags. The
+  Experience/Education content itself (org + role/degree) is real. Don't
+  treat About's current layout (two-column grid, tag-list hobbies) as final
+  — it's a reasonable placeholder structure, open to redesign once real
+  content exists.
+- Real content wired in elsewhere: name, headline, role/ESSEC highlight on
+  Home, Experience/Education on About, contact links (LinkedIn, phone,
+  email) on the footer and the Contact page, and the About-page photo
+  (`assets/photo.jpg`). To swap the photo, replace `assets/photo.jpg` (keep
+  it roughly square, ~220×220 or larger — it's cropped with `object-fit:
+  cover`).
 - There is no resume/CV download button — this was an explicit choice (the
   site itself is meant to stand in for the resume).
 

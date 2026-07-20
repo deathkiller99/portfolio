@@ -1,9 +1,35 @@
 (function () {
   'use strict';
 
+  function renderThumb(project) {
+    const thumb = document.createElement('div');
+
+    if (project.detail && project.detail.type === 'canva') {
+      thumb.className = 'project-thumb';
+      const iframe = document.createElement('iframe');
+      iframe.src = project.detail.embedUrl;
+      iframe.loading = 'lazy';
+      iframe.allowFullscreen = true;
+      thumb.appendChild(iframe);
+    } else {
+      // No real screenshot yet — show a generated placeholder tile
+      // (a project's own tag initial) instead of leaving the card bare.
+      thumb.className = 'project-thumb project-thumb-placeholder';
+      const glyph = document.createElement('span');
+      glyph.className = 'project-thumb-glyph';
+      const source = (project.tags && project.tags[0]) || project.title;
+      glyph.textContent = source.charAt(0).toUpperCase();
+      thumb.appendChild(glyph);
+    }
+
+    return thumb;
+  }
+
   function renderCard(project) {
     const card = document.createElement('article');
     card.className = 'project-card';
+
+    card.appendChild(renderThumb(project));
 
     const title = document.createElement('h3');
     title.className = 'project-title';
@@ -27,22 +53,11 @@
       card.appendChild(tagList);
     }
 
-    if (project.detail) {
-      if (project.detail.type === 'canva') {
-        const embed = document.createElement('div');
-        embed.className = 'project-embed';
-        const iframe = document.createElement('iframe');
-        iframe.src = project.detail.embedUrl;
-        iframe.loading = 'lazy';
-        iframe.allowFullscreen = true;
-        embed.appendChild(iframe);
-        card.appendChild(embed);
-      } else if (project.detail.type === 'text') {
-        const detailText = document.createElement('p');
-        detailText.className = 'project-blurb';
-        detailText.textContent = project.detail.content;
-        card.appendChild(detailText);
-      }
+    if (project.detail && project.detail.type === 'text') {
+      const detailText = document.createElement('p');
+      detailText.className = 'project-blurb';
+      detailText.textContent = project.detail.content;
+      card.appendChild(detailText);
     }
 
     return card;
@@ -85,11 +100,14 @@
   }
 
   function initScrollReveal() {
-    const hero = document.getElementById('hero');
-    if (!hero || !('IntersectionObserver' in window)) {
-      if (hero) hero.classList.add('in-view');
+    const targets = document.querySelectorAll('.reveal');
+    if (!targets.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach(function (el) { el.classList.add('in-view'); });
       return;
     }
+
     const observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
@@ -98,7 +116,8 @@
         }
       });
     }, { threshold: 0.1 });
-    observer.observe(hero);
+
+    targets.forEach(function (el) { observer.observe(el); });
   }
 
   document.addEventListener('DOMContentLoaded', function () {

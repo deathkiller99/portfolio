@@ -11,84 +11,32 @@
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<div class="page">
 
-  <aside class="sidebar">
-    <div class="sidebar-section">
-      <h2 class="sidebar-heading">Work History</h2>
-      <ul class="timeline">
-        <li class="timeline-item">
-          <div class="timeline-org">Worldline</div>
-          <div class="timeline-title">GTM Solution Manager</div>
-        </li>
-        <li class="timeline-item">
-          <div class="timeline-org">ICICI Lombard</div>
-          <div class="timeline-title">Senior Developer</div>
-        </li>
-      </ul>
+<nav class="nav">
+  <a class="nav-wordmark" href="index.html">Portfolio</a>
+  <div class="nav-links">
+    <a class="nav-link is-active" href="index.html">Home</a>
+    <a class="nav-link" href="work.html">Work</a>
+    <a class="nav-link" href="about.html">About</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+  </div>
+</nav>
+
+<main class="main">
+  <section class="hero reveal" id="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Digital Footprint of</p>
+      <h1 class="name">Sai Harsha Malla</h1>
+      <p class="headline">A curious and analytical operator looking to own problems, solve them, and make a positive impact.</p>
+      <div class="role-highlight">
+        <span class="role-highlight-line">GTM Solution Manager &mdash; Worldline</span>
+        <span class="role-highlight-line is-secondary">ESSEC Business School</span>
+      </div>
     </div>
+  </section>
 
-    <div class="sidebar-section">
-      <h2 class="sidebar-heading">Education</h2>
-      <ul class="timeline">
-        <li class="timeline-item">
-          <div class="timeline-org">ESSEC Business School</div>
-          <div class="timeline-title">Master&rsquo;s in Management, Marketing Track &middot; Sports Chair</div>
-        </li>
-        <li class="timeline-item">
-          <div class="timeline-org">GrowthX</div>
-          <div class="timeline-title">Acquisition, Onboarding, Retention &amp; Monetization</div>
-        </li>
-        <li class="timeline-item">
-          <div class="timeline-org">Manipal Institute of Technology</div>
-          <div class="timeline-title">B.Tech, Computer Science &mdash; minor in Big Data</div>
-        </li>
-      </ul>
-    </div>
-  </aside>
-
-  <main class="main">
-    <section class="hero" id="hero">
-      <div class="hero-text">
-        <p class="eyebrow">Portfolio</p>
-        <h1 class="name">Sai Harsha Malla</h1>
-        <p class="headline">A curious and analytical operator looking to own problems, solve them, and make a positive impact.</p>
-      </div>
-      <div class="hero-photo">
-        <img src="assets/photo-placeholder.svg" alt="Sai Harsha Malla" width="220" height="220">
-      </div>
-    </section>
-
-    <section class="projects" aria-label="Projects">
-
-      <div class="category" data-category="work">
-        <button class="category-toggle" aria-expanded="false" aria-controls="panel-work">
-          <span class="category-label">Work Projects</span>
-          <span class="category-icon" aria-hidden="true"></span>
-        </button>
-        <div class="category-panel" id="panel-work" data-panel="work" hidden></div>
-      </div>
-
-      <div class="category" data-category="school">
-        <button class="category-toggle" aria-expanded="false" aria-controls="panel-school">
-          <span class="category-label">School Projects</span>
-          <span class="category-icon" aria-hidden="true"></span>
-        </button>
-        <div class="category-panel" id="panel-school" data-panel="school" hidden></div>
-      </div>
-
-      <div class="category" data-category="personal">
-        <button class="category-toggle" aria-expanded="false" aria-controls="panel-personal">
-          <span class="category-label">Personal Projects</span>
-          <span class="category-icon" aria-hidden="true"></span>
-        </button>
-        <div class="category-panel" id="panel-personal" data-panel="personal" hidden></div>
-      </div>
-
-    </section>
-  </main>
-
-</div>
+  <a class="btn btn-primary" href="work.html">View my work &rarr;</a>
+</main>
 
 <footer class="site-footer">
   <a href="https://www.linkedin.com/in/saiharshamalla/" target="_blank" rel="noopener">LinkedIn</a>
@@ -98,7 +46,6 @@
   <a href="mailto:harsha.malla@essec.edu">harsha.malla@essec.edu</a>
 </footer>
 
-<script src="js/projects-data.js"></script>
 <script src="js/script.js"></script>
 </body>
 </html>
