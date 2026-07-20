@@ -37,7 +37,8 @@ Portfolio/
 │   ├── projects-data.js     # project content (edit this to add/change projects) — only used by work.html
 │   └── script.js            # rendering, accordion, scroll-reveal — logic only, included on every page
 ├── assets/
-│   └── photo.jpg
+│   ├── photo.jpg
+│   └── logos/               # institution logos used on About (essec.jpg, growthx.webp, etc.)
 └── CLAUDE.md
 ```
 
@@ -173,11 +174,14 @@ then a `.timeline-text` wrapper containing `.timeline-org` (bold) and
 `.timeline-title` (role/degree, below) — no dates. There is no data file for
 these — they're simple enough to stay as markup.
 
-**About the `.timeline-logo` tiles:** these are text placeholders (short
-abbreviations — "WL", "ICICI", "ESSEC", "GX", "MIT") until the site owner
-provides real logo image files. When real logos are supplied, swap the tile
-content for an `<img>` (keep the 40×40 `.timeline-logo` box as the frame) —
-don't leave both a text abbreviation and an image.
+**About the `.timeline-logo` tiles:** each renders a real logo image from
+`assets/logos/` (`essec.jpg`, `growthx.webp`, `icici-lombard.jpg`,
+`manipal.jpg`, `worldline.webp`). The tile background is intentionally
+white (`#fff`), not the dark theme color, because the source logos mix
+solid-color and transparent/white backgrounds — a white chip keeps every
+logo legible regardless. To add a new institution logo, drop the image in
+`assets/logos/` and add an `<img>` inside a `.timeline-logo` div, same
+pattern as the existing entries.
 
 **To update contact info:** edit the links inside `<footer
 class="site-footer">` (present on Home, Work, About — **not** Contact,
@@ -193,18 +197,17 @@ both places; update them together.
 - **About page is a structural skeleton, not final design.** The user is
   deferring About's real content and visual design to a dedicated follow-up
   session once they share their real intro copy. Currently placeholder: the
-  intro paragraph, the `.timeline-logo` text abbreviations (real logo image
-  files to come), and the "Outside of Work" hobbies tags. The
-  Experience/Education content itself (org + role/degree) is real. Don't
+  intro paragraph and the "Outside of Work" hobbies tags. The
+  Experience/Education content (org + role/degree + logo) is real. Don't
   treat About's current layout (two-column grid, tag-list hobbies) as final
   — it's a reasonable placeholder structure, open to redesign once real
   content exists.
 - Real content wired in elsewhere: name, headline, role/ESSEC highlight on
-  Home, Experience/Education on About, contact links (LinkedIn, phone,
-  email) on the footer and the Contact page, and the About-page photo
-  (`assets/photo.jpg`). To swap the photo, replace `assets/photo.jpg` (keep
-  it roughly square, ~220×220 or larger — it's cropped with `object-fit:
-  cover`).
+  Home, Experience/Education (with real institution logos) on About, contact
+  links (LinkedIn, phone, email) on the footer and the Contact page, and the
+  About-page photo (`assets/photo.jpg`). To swap the photo, replace
+  `assets/photo.jpg` (keep it roughly square, ~220×220 or larger — it's
+  cropped with `object-fit: cover`).
 - There is no resume/CV download button — this was an explicit choice (the
   site itself is meant to stand in for the resume).
 
