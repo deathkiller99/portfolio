@@ -120,8 +120,8 @@ token value — don't hardcode a new color/spacing value at the point of use.
   dates** and only two lines: the organization/institution name (bold), then
   the role or degree below it. No extra detail line. Order is
   most-recent-first within each section, and Experience is listed before
-  Education. Each entry also carries a small logo tile (`.timeline-logo`)
-  to its left — see the placeholder note below.
+  Education. Each entry also carries a small logo tile (`.timeline-logo`,
+  a real institution logo image) to its left.
 - Project blurbs should be short (1–2 sentences) — the card is a teaser, not
   the full case study.
 - Tone throughout: crisp, professional, no filler adjectives.
@@ -179,7 +179,14 @@ these — they're simple enough to stay as markup.
 `manipal.jpg`, `worldline.webp`). The tile background is intentionally
 white (`#fff`), not the dark theme color, because the source logos mix
 solid-color and transparent/white backgrounds — a white chip keeps every
-logo legible regardless. To add a new institution logo, drop the image in
+logo legible regardless. There's no padding inside the tile — logos render
+at full size via `object-fit: contain` so they fill the frame, in their real
+colors at all times (grayscale/dimming by default was tried and explicitly
+rejected). Hovering the row (`.timeline-item:hover`) lifts the tile
+slightly and adds a soft accent-blue glow — this is the site's one
+"highlight" treatment for the logo strip; keep it to this single subtle
+effect rather than adding more (per an explicit "classy, not gimmicky"
+request). To add a new institution logo, drop the image in
 `assets/logos/` and add an `<img>` inside a `.timeline-logo` div, same
 pattern as the existing entries.
 
@@ -194,16 +201,17 @@ both places; update them together.
 - All six projects in `js/projects-data.js` (2 per category) are
   **placeholders** — titles, blurbs, and Canva embed URLs need to be replaced
   with real content.
-- **About page is a structural skeleton, not final design.** The user is
-  deferring About's real content and visual design to a dedicated follow-up
-  session once they share their real intro copy. Currently placeholder: the
-  intro paragraph and the "Outside of Work" hobbies tags. The
-  Experience/Education content (org + role/degree + logo) is real. Don't
-  treat About's current layout (two-column grid, tag-list hobbies) as final
-  — it's a reasonable placeholder structure, open to redesign once real
-  content exists.
-- Real content wired in elsewhere: name, headline, role/ESSEC highlight on
-  Home, Experience/Education (with real institution logos) on About, contact
+- **About page now has real content throughout**: the two intro paragraphs,
+  Experience/Education (with real institution logos), and the three "Outside
+  of Work" hobby cards (Running, Vibe Coding, Cooking — each with a small
+  outline SVG icon via `.hobby-icon`, inline in the markup, not an icon
+  library) are all real. The page's *visual design* may still get a
+  dedicated pass later, but there's no longer placeholder copy to swap in.
+  In the intro, "payments and fintech" is deliberately highlighted in accent
+  color (`.text-accent`) to signal the industry focus — keep this the one
+  inline text highlight on the page rather than adding more.
+- Real content wired in: name, headline, role/ESSEC highlight on Home, full
+  About page (intro, experience/education with logos, hobbies), contact
   links (LinkedIn, phone, email) on the footer and the Contact page, and the
   About-page photo (`assets/photo.jpg`). To swap the photo, replace
   `assets/photo.jpg` (keep it roughly square, ~220×220 or larger — it's
