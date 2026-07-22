@@ -22,6 +22,23 @@ build step, no framework.
   zero-friction editing and deployment.
 - Open any `.html` file directly in a browser (or serve the folder with any
   static file server) to preview changes locally. No install step is required.
+- **`vercel.json`** overrides the `X-Robots-Tag` header to `all` on every
+  path. Vercel auto-injects `X-Robots-Tag: noindex` on the default
+  `*.vercel.app` domain (not custom domains) to keep it out of search
+  engines — but that also caused LinkedIn's link-preview/"Featured" flow to
+  reject the URL as invalid. Don't remove this override while the site is
+  still on a `*.vercel.app` domain; if a custom domain is added later,
+  it's fine to check whether the override is still needed (custom domains
+  don't get the auto-noindex).
+- **Live site**: https://portfolio-harsha9987.vercel.app (the stable
+  project-scoped alias — use this one in profiles/links, not the
+  per-deploy `portfolio-<hash>-harsha9987.vercel.app` URLs printed by each
+  `vercel --prod` run).
+- Every page's `<head>` carries Open Graph + Twitter Card meta tags
+  (`og:title`, `og:description`, `og:image`, `twitter:card`, etc.), each
+  using that same stable production URL and `assets/photo.jpg` as the
+  preview image. If the page title/description changes, update these
+  tags alongside `<title>`/the description `<meta>` — don't let them drift.
 
 ## File structure
 
@@ -43,6 +60,7 @@ Portfolio/
 │       ├── essec-growthx/      #   school-category PDFs
 │       ├── worldline/           #   work-category PDFs
 │       └── personal/             #   personal-category PDFs
+├── vercel.json               # X-Robots-Tag override (see Tech stack & hosting)
 └── CLAUDE.md
 ```
 
