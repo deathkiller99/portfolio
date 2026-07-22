@@ -38,7 +38,11 @@ Portfolio/
 │   └── script.js            # rendering, accordion, scroll-reveal — logic only, included on every page
 ├── assets/
 │   ├── photo.jpg
-│   └── logos/               # institution logos used on About (essec.jpg, growthx.webp, etc.)
+│   ├── logos/                # institution logos used on About (essec.jpg, growthx.webp, etc.)
+│   └── work/                  # PDFs referenced by pdf-type projects, one subfolder per category:
+│       ├── essec-growthx/      #   school-category PDFs
+│       ├── worldline/           #   work-category PDFs
+│       └── personal/             #   personal-category PDFs
 └── CLAUDE.md
 ```
 
@@ -133,8 +137,11 @@ token value — don't hardcode a new color/spacing value at the point of use.
   most-recent-first within each section, and Experience is listed before
   Education. Each entry also carries a small logo tile (`.timeline-logo`,
   a real institution logo image) to its left.
-- Project blurbs should be short (1–2 sentences) — the card is a teaser, not
-  the full case study.
+- Project blurbs, when present, should be short (1–2 sentences) — the card
+  is a teaser, not the full case study. `blurb` is optional: for `pdf`-type
+  projects especially, it's fine to omit it entirely and let the title + PDF
+  preview carry the card (explicit site-owner preference — don't add
+  blurbs back onto PDF projects that don't have one).
 - Tone throughout: crisp, professional, no filler adjectives.
 - Never invent facts about the site owner (hobbies, project details, bio
   copy) to fill a gap — use an explicit bracketed placeholder (e.g. `[Add
@@ -155,11 +162,15 @@ includes this file and renders them. Shape:
     type: 'text',
     content: string      // shown directly on the card
   } | {
-    type: 'canva',
-    embedUrl: string     // Canva "Share → Embed" URL, rendered in an iframe
+    type: 'pdf',
+    pdfUrl: string       // path to a PDF in assets/work/, e.g. 'assets/work/capstone.pdf'
   }
 }
 ```
+
+There is no `canva` type — an earlier version supported Canva embeds, but
+the site owner isn't using Canva, so that code path was removed rather than
+kept around unused. Don't reintroduce it speculatively.
 
 `js/script.js` renders these into the DOM on `DOMContentLoaded` — it has no
 knowledge of specific projects, only of this shape. This means:
@@ -168,15 +179,63 @@ knowledge of specific projects, only of this shape. This means:
 the correct array (`work`, `school`, or `personal`), save. Nothing else needs
 to change.
 
-**To add a Canva-embedded project:** in Canva, use *Share → Embed* to get the
-embed URL, and set `detail: { type: 'canva', embedUrl: '<that URL>' }`.
+**To add a PDF-backed project:** drop the PDF file into the matching
+category subfolder under `assets/work/` (`essec-growthx/`, `worldline/`,
+`personal/` — these mirror the three project categories), then set
+`detail: { type: 'pdf', pdfUrl: 'assets/work/<category>/<filename>.pdf' }`.
+Use clean, URL-safe filenames (lowercase, hyphens, no spaces/`&`/parens) —
+rename the source file if needed rather than encoding a messy name into the
+URL. Most confidential work projects will be `text`-type instead (no file
+to share); most School (ESSEC & GrowthX) projects are expected to be
+`pdf`-type.
 
-Every card gets a thumbnail (`renderThumb()` in `script.js`): a `canva`-type
-project's embed renders directly as the thumbnail; anything else gets a
-generated placeholder tile (a large faint letter, taken from the project's
-first tag). There's no `image` field in the data model yet — if you want a
-real screenshot on a text-type project, that's the place to extend the shape
-and `renderThumb()` together.
+**Large PDFs**: inline preview means the whole file loads in the browser.
+Multi-tens-of-MB PDFs (a couple of the current ones are 25–55MB) will be
+slow, especially on mobile — flag this to the site owner and suggest
+compressing before adding new ones, rather than silently accepting huge
+files.
+
+Every card gets a thumbnail (`renderThumb()` in `script.js`), in this
+priority order:
+
+1. **`pdf`-type**: the PDF renders inline via an iframe (native PDF toolbar
+   hidden). Rendering is inconsistent across mobile browsers (some show a
+   blank frame or force a download instead of a preview) — so rather than
+   relying on the preview alone, **the whole card is a link** (`renderCard()`
+   builds a `pdf`-type card as `<a href={pdfUrl} target="_blank">` instead
+   of an `<article>`) — clicking anywhere, including over the preview,
+   opens the PDF. This only works because `.project-thumb iframe` has
+   `pointer-events: none`, letting the click pass through the iframe to the
+   enclosing link instead of being captured by the PDF's own document.
+   There's no separate "Open PDF" link element anymore — don't add one back
+   (a nested `<a>` inside the card-link would be invalid HTML).
+2. **`icon` field set** (any detail type, typically `text`-type projects):
+   renders one of the hand-drawn outline SVGs from the `ICONS` map in
+   `script.js` (same stroke style as the About-page hobby icons — `viewBox
+   0 0 24 24`, `stroke="currentColor"`, `stroke-width="1.6"`, round caps/
+   joins), on a soft radial-glow tile (`.project-thumb-placeholder`; not a
+   photo/screenshot — deliberately abstract, tried a diagonal-line pattern
+   first and replaced it with this per the site owner). Pick or add an icon
+   that thematically fits the project (e.g. `growth` for a market-sizing/
+   strategy project, `ai` for AI work, `pos` for a payments-terminal
+   project) rather than reusing one arbitrarily. To add a new icon: add a
+   key to `ICONS` in `script.js`, then reference it via `icon: '<key>'` on
+   the project object.
+3. **Neither**: falls back to the same radial-glow tile with a generated
+   letter glyph (taken from the project's first tag or title) instead of an
+   icon.
+
+There's no `image` field in the data model — if you want a real screenshot
+on a project, that's the place to extend the shape and `renderThumb()`
+together.
+
+**Empty categories get a "coming soon" message, not fake placeholders.**
+`renderCategory()` checks `projects.length` and, if empty, renders a single
+centered `.category-empty` message ("Some great work coming soon!") instead
+of iterating an empty array. `personal` is currently `[]` for exactly this
+reason — don't add placeholder project objects back in to "fill" a category;
+leave the array empty and let the message do its job until there's real
+content.
 
 **To update credentials (education/work experience):** edit the `<li
 class="timeline-item">` entries directly in `about.html`, inside
@@ -209,9 +268,21 @@ both places; update them together.
 
 ## Current state / placeholders
 
-- All six projects in `js/projects-data.js` (2 per category) are
-  **placeholders** — titles, blurbs, and Canva embed URLs need to be replaced
-  with real content.
+- **`school` (ESSEC & GrowthX) projects are real**: three PDF-backed
+  projects (Telmont Marketing Strategy, UiPath Marketing Strategy, Groww
+  Onboarding Breakdown), each `pdf`-type with no `blurb` (title + preview
+  only, by explicit request).
+- **`work` (Worldline) projects are real**: three `text`-type projects
+  (Strategy & Business Potential - Nordics, AI Tooling for Enterprise GTM,
+  SoftPOS Business Case — France), confidential so no files — each is a
+  single ~40-60 word paragraph in `detail.content`, no separate `blurb`
+  (same "let the one summary carry the card" pattern as the PDF projects).
+  Each also has an `icon` (`growth`, `ai`, `pos` respectively) chosen to
+  thematically match the project. Keep new `work` entries in this same word
+  range unless told otherwise.
+- **`personal` is intentionally empty** (`[]`) — shows the "Some great work
+  coming soon!" empty state (see the Project Data Model section above).
+  Not a bug; don't add placeholder projects back in.
 - **About page now has real content throughout**: the two intro paragraphs,
   Experience/Education (with real institution logos), and the three "Outside
   of Work" hobby cards (Running, Vibe Coding, Cooking — each with a small
