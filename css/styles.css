@@ -32,6 +32,27 @@
   --nav-height: 72px;
   --content-max-width: 1240px;
   --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+/* Light theme — applied via [data-theme="light"] on <html>, set by the
+   inline script in <head> (before paint, to avoid a flash) and toggled
+   by .theme-toggle in script.js. Absence of the attribute means dark,
+   so dark stays the default for anyone without JS. */
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-elevated: #f3f4f7;
+  --bg-elevated-hover: #e9ebf0;
+  --border: #dfe1e6;
+  --text: #14161c;
+  --text-muted: #565b66;
+  --text-faint: #8a8f99;
+  --accent: #1d4ed8;
+  --accent-soft: rgba(29, 78, 216, 0.10);
+  --accent-border: rgba(29, 78, 216, 0.30);
+
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -157,6 +178,30 @@ ul { list-style: none; margin: 0; padding: 0; }
   height: 2px;
   border-radius: 2px;
   background: var(--accent);
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.theme-toggle:hover {
+  color: var(--accent);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* ---------------------------------------------------------

@@ -137,6 +137,35 @@
     });
   }
 
+  // Same outline-icon stroke style as ICONS above.
+  var THEME_ICONS = {
+    sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+    moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>'
+  };
+
+  function initThemeToggle() {
+    const toggle = document.getElementById('themeToggle');
+    if (!toggle) return;
+
+    function currentTheme() {
+      return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    }
+
+    // Icon shows what clicking will switch TO, not the current state.
+    function updateIcon() {
+      toggle.innerHTML = currentTheme() === 'light' ? THEME_ICONS.moon : THEME_ICONS.sun;
+    }
+
+    updateIcon();
+
+    toggle.addEventListener('click', function () {
+      const next = currentTheme() === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateIcon();
+    });
+  }
+
   function initScrollReveal() {
     const targets = document.querySelectorAll('.reveal');
     if (!targets.length) return;
@@ -163,6 +192,7 @@
     renderCategory('school');
     renderCategory('personal');
     initAccordion();
+    initThemeToggle();
     initScrollReveal();
   });
 })();

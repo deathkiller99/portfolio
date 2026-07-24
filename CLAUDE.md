@@ -78,11 +78,25 @@ across Home/Work/About/Contact without per-page branching.
 ### Nav is duplicated across all four pages — keep it in sync
 
 There's no templating, so the nav block is copy-pasted into each `.html`
-file, differing only in which link carries `class="nav-link is-active"`.
+file, differing only in which link carries `class="nav-link is-active"`
+and, since the light/dark toggle was added, an identical `<button
+class="theme-toggle" id="themeToggle">` at the end of `.nav-links`.
 **If you change the nav (add a page, rename a link, restyle it), you must
 edit all four files identically.** This was an explicit tradeoff — the
 alternative (fetching a shared nav partial via JS) would break "open the
 HTML file directly, no server needed," which was worth keeping.
+
+### Theme-detection script is also duplicated — and order matters
+
+Each page's `<head>` starts with an inline `<script>` (right after `<meta
+charset>`, before everything else) that reads `localStorage.getItem('theme')`,
+falls back to `prefers-color-scheme` if nothing's saved, and sets
+`data-theme` on `<html>` synchronously. It must run this early and inline
+(not deferred, not in `script.js`) so the correct theme is applied *before*
+the browser paints — otherwise every navigation would flash dark before
+switching to a saved light preference. Same copy-paste-across-four-files
+tradeoff as the nav; keep this exact script identical in all four pages if
+it ever needs to change.
 
 ## Design system
 
@@ -90,10 +104,23 @@ All visual tokens are CSS custom properties defined once at the top of
 `css/styles.css` (`:root`). When changing the look of the site, change the
 token value — don't hardcode a new color/spacing value at the point of use.
 
-- **Theme**: dark. Background `#0a0b0f`, elevated surfaces `#13151c`.
-- **Accent**: a single electric blue, `#3b82f6` (`--accent`), used sparingly
-  for headings, tags, hover states, the accordion icon, the active nav link,
-  and the CTA button. Do not introduce a second accent color.
+- **Theme**: dark by default (background `#0a0b0f`, elevated surfaces
+  `#13151c`), with a **light theme** available via `:root[data-theme="light"]`
+  in `styles.css` (background `#ffffff`, elevated `#f3f4f7`). Both themes
+  share the same token names (`--bg`, `--text`, `--accent`, etc.) — the
+  light override block only changes the values, so every component that
+  already uses the tokens works in both themes automatically with no
+  special-casing. The `.theme-toggle` button (in the nav, wired up by
+  `initThemeToggle()` in `script.js`) flips the `data-theme` attribute on
+  `<html>` and persists the choice to `localStorage` (`theme` key); absence
+  of the attribute/stored value means dark. See "Theme-detection script"
+  above for how the flash-of-wrong-theme problem is handled.
+- **Accent**: a single electric blue — `#3b82f6` in dark, a deeper `#1d4ed8`
+  in light (for text-contrast reasons against a white background) — used
+  sparingly for headings, tags, hover states, the accordion icon, the
+  active nav link, and the CTA button. Do not introduce a second accent
+  color, and don't add a third color for light mode beyond this one
+  deliberate shade adjustment.
 - **Type**: Space Grotesk (sharp, geometric sans) for everything — headings
   and body. No serif, no monospace. Max usable weight is 700 (Space Grotesk
   has no 800) — don't request a heavier weight.
