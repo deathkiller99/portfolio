@@ -110,17 +110,25 @@ token value — don't hardcode a new color/spacing value at the point of use.
   share the same token names (`--bg`, `--text`, `--accent`, etc.) — the
   light override block only changes the values, so every component that
   already uses the tokens works in both themes automatically with no
-  special-casing. The `.theme-toggle` button (in the nav, wired up by
-  `initThemeToggle()` in `script.js`) flips the `data-theme` attribute on
-  `<html>` and persists the choice to `localStorage` (`theme` key); absence
-  of the attribute/stored value means dark. See "Theme-detection script"
-  above for how the flash-of-wrong-theme problem is handled.
+  special-casing. The `.theme-toggle` is a sliding switch (a pill track
+  with static sun/moon icons at each end and a `.theme-toggle-thumb` that
+  slides between them), in the nav, wired up by `initThemeToggle()` in
+  `script.js`. It flips the `data-theme` attribute on `<html>` and persists
+  the choice to `localStorage` (`theme` key); absence of the
+  attribute/stored value means dark. **The thumb's position is pure CSS**
+  (`:root[data-theme="light"] .theme-toggle-thumb { left: 3px; }`, default
+  `left: 29px`) driven directly off the same root attribute the inline
+  head script sets before paint — not off JS/`aria-checked` — specifically
+  so there's no flash or jump on page load. `initThemeToggle()` only
+  toggles the attribute on click and keeps `aria-checked` (`role="switch"`)
+  in sync for assistive tech; it does not touch the thumb's visual position.
+  See "Theme-detection script" above for the flash-of-wrong-theme handling.
 - **Accent**: a single electric blue — `#3b82f6` in dark, a deeper `#1d4ed8`
   in light (for text-contrast reasons against a white background) — used
   sparingly for headings, tags, hover states, the accordion icon, the
-  active nav link, and the CTA button. Do not introduce a second accent
-  color, and don't add a third color for light mode beyond this one
-  deliberate shade adjustment.
+  active nav link, the CTA button, and the theme-toggle thumb. Do not
+  introduce a second accent color, and don't add a third color for light
+  mode beyond this one deliberate shade adjustment.
 - **Type**: Space Grotesk (sharp, geometric sans) for everything — headings
   and body. No serif, no monospace. Max usable weight is 700 (Space Grotesk
   has no 800) — don't request a heavier weight.

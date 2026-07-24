@@ -13,6 +13,7 @@
   --accent: #3b82f6;
   --accent-soft: rgba(59, 130, 246, 0.14);
   --accent-border: rgba(59, 130, 246, 0.35);
+  --nav-bg: rgba(10, 11, 15, 0.75);
 
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
@@ -51,6 +52,7 @@
   --accent: #1d4ed8;
   --accent-soft: rgba(29, 78, 216, 0.10);
   --accent-border: rgba(29, 78, 216, 0.30);
+  --nav-bg: rgba(255, 255, 255, 0.75);
 
   color-scheme: light;
 }
@@ -133,7 +135,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-7);
-  background: rgba(10, 11, 15, 0.75);
+  background: var(--nav-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
@@ -181,27 +183,59 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 28px;
   padding: 0;
   margin: 0;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elevated);
   cursor: pointer;
-  transition: color var(--transition);
+  transition: border-color var(--transition);
 }
 
 .theme-toggle:hover {
-  color: var(--accent);
+  border-color: var(--accent-border);
 }
 
-.theme-toggle svg {
+.theme-toggle-icon {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.theme-toggle-icon-sun {
+  left: 6px;
+}
+
+.theme-toggle-icon-moon {
+  right: 6px;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 29px;
   width: 20px;
   height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: left var(--transition);
+}
+
+/* Thumb position is driven directly by the root theme attribute (not the
+   button's own state), since that attribute is already set synchronously
+   before paint by the inline head script — this avoids any flash/jump on
+   page load that driving it off aria-checked + JS would risk. */
+:root[data-theme="light"] .theme-toggle-thumb {
+  left: 3px;
 }
 
 /* ---------------------------------------------------------
