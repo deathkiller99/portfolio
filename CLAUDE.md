@@ -217,9 +217,28 @@ includes this file and renders them. Shape:
   } | {
     type: 'pdf',
     pdfUrl: string       // path to a PDF in assets/work/, e.g. 'assets/work/capstone.pdf'
+  } | {
+    type: 'link',
+    url: string,         // external destination (e.g. a GitHub repo) — the
+                          // thumbnail/title/tags link here, in an inner
+                          // `.project-card-link` <a> (the outer card stays
+                          // an <article>, unlike the pdf-type whole-card-link)
+    downloadUrl: string,  // optional — path to a downloadable file (e.g. in
+                          // assets/work/); renders a separate `.project-
+                          // download-btn` below the card as a sibling, not
+                          // nested inside the url link (nesting an <a>
+                          // inside an <a> is invalid HTML)
+    downloadLabel: string // optional — download button text, defaults to
+                          // 'Download file'
   }
 }
 ```
+
+Use `link`-type for a project whose file format can't be previewed inline the
+way a PDF can (e.g. a `.pbix` Power BI file) — link out to something that
+*can* be previewed (a GitHub repo with a README/screenshots, a hosted demo)
+and offer the raw file as a separate download rather than inventing a fake
+inline preview for it.
 
 There is no `canva` type — an earlier version supported Canva embeds, but
 the site owner isn't using Canva, so that code path was removed rather than
@@ -262,6 +281,15 @@ priority order:
    enclosing link instead of being captured by the PDF's own document.
    There's no separate "Open PDF" link element anymore — don't add one back
    (a nested `<a>` inside the card-link would be invalid HTML).
+1a. **`link`-type**: same idea as `pdf`, but the destination isn't
+   iframe-able — thumbnail/title/tags sit inside an inner `<a
+   class="project-card-link">` pointing at `detail.url` (e.g. a GitHub
+   repo), and if `detail.downloadUrl` is set, a separate `<a
+   class="project-download-btn">` (styled as an outlined button, reusing
+   the `.btn` base class) is appended below as a sibling — not nested
+   inside the card-link, since a nested `<a>` would be invalid HTML.
+   `renderThumb()` treats `link`-type the same as any non-`pdf` type: it
+   falls through to the `icon`/letter-glyph logic below.
 2. **`icon` field set** (any detail type, typically `text`-type projects):
    renders one of the hand-drawn outline SVGs from the `ICONS` map in
    `script.js` (same stroke style as the About-page hobby icons — `viewBox
@@ -333,9 +361,15 @@ both places; update them together.
   Each also has an `icon` (`growth`, `ai`, `pos` respectively) chosen to
   thematically match the project. Keep new `work` entries in this same word
   range unless told otherwise.
-- **`personal` is intentionally empty** (`[]`) — shows the "Some great work
-  coming soon!" empty state (see the Project Data Model section above).
-  Not a bug; don't add placeholder projects back in.
+- **`personal` has one real project**: "Data Jobs Dashboard - PowerBI",
+  `link`-type (a `.pbix` can't be previewed inline like a PDF) pointing at
+  its GitHub repo (README + screenshots), with a separate download button
+  for the raw `.pbix` (in `assets/work/personal/`). No `blurb` — title +
+  link carries the card, same pattern as the PDF projects. Add further
+  real personal projects the same way; if the array is ever empty again,
+  `renderCategory()` falls back to the "Some great work coming soon!"
+  message (see the Project Data Model section above) — don't add
+  placeholder project objects to fill it.
 - **About page now has real content throughout**: the two intro paragraphs,
   Experience/Education (with real institution logos), and the three "Outside
   of Work" hobby cards (Running, Vibe Coding, Cooking — each with a small

@@ -7,7 +7,8 @@
   var ICONS = {
     growth: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-9"/><path d="M15 6h6v6"/></svg>',
     ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg>',
-    pos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><rect x="8" y="6" width="8" height="5" rx="0.5"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="8" y1="18" x2="12" y2="18"/></svg>'
+    pos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><rect x="8" y="6" width="8" height="5" rx="0.5"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="8" y1="18" x2="12" y2="18"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3" height="8"/><rect x="12" y="8" width="3" height="12"/><rect x="18" y="4" width="3" height="16"/></svg>'
   };
 
   function renderThumb(project) {
@@ -43,7 +44,9 @@
   }
 
   function renderCard(project) {
-    const isPdf = project.detail && project.detail.type === 'pdf';
+    const detailType = project.detail && project.detail.type;
+    const isPdf = detailType === 'pdf';
+    const isLink = detailType === 'link';
 
     // PDF projects are a single whole-card link so clicking anywhere
     // (including the preview) opens the file — see the pointer-events
@@ -56,18 +59,33 @@
       card.rel = 'noopener';
     }
 
-    card.appendChild(renderThumb(project));
+    // `link` projects have two destinations (an external URL and a
+    // download), so the card itself can't be one big <a> like the PDF
+    // case — a download <a> nested inside it would be invalid HTML.
+    // Instead the thumbnail/title/tags nest inside their own inner link,
+    // and the download button is appended to `card` as a sibling below.
+    let content = card;
+    if (isLink) {
+      content = document.createElement('a');
+      content.className = 'project-card-link';
+      content.href = project.detail.url;
+      content.target = '_blank';
+      content.rel = 'noopener';
+      card.appendChild(content);
+    }
+
+    content.appendChild(renderThumb(project));
 
     const title = document.createElement('h3');
     title.className = 'project-title';
     title.textContent = project.title;
-    card.appendChild(title);
+    content.appendChild(title);
 
     if (project.blurb) {
       const blurb = document.createElement('p');
       blurb.className = 'project-blurb';
       blurb.textContent = project.blurb;
-      card.appendChild(blurb);
+      content.appendChild(blurb);
     }
 
     if (project.tags && project.tags.length) {
@@ -79,14 +97,24 @@
         pill.textContent = tag;
         tagList.appendChild(pill);
       });
-      card.appendChild(tagList);
+      content.appendChild(tagList);
     }
 
-    if (project.detail && project.detail.type === 'text') {
+    if (detailType === 'text') {
       const detailText = document.createElement('p');
       detailText.className = 'project-blurb';
       detailText.textContent = project.detail.content;
-      card.appendChild(detailText);
+      content.appendChild(detailText);
+    }
+
+    if (isLink && project.detail.downloadUrl) {
+      const download = document.createElement('a');
+      download.className = 'project-download-btn btn';
+      download.href = project.detail.downloadUrl;
+      download.download = '';
+      download.rel = 'noopener';
+      download.textContent = project.detail.downloadLabel || 'Download file';
+      card.appendChild(download);
     }
 
     return card;

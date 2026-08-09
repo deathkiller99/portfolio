@@ -507,6 +507,14 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 /* Project card */
 .project-card {
+  /* Caps how wide a single grid item can stretch when auto-fit collapses
+     unused tracks (e.g. a category with only one project) — without this,
+     a lone card would stretch to fill the entire row instead of matching
+     the card width seen when a row has enough cards to fill it on their
+     own (2-4 cards, e.g. Worldline/ESSEC & GrowthX). Below this cap,
+     multi-card rows are unaffected since their natural stretched width
+     already comes in under it. */
+  max-width: 360px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: var(--space-4);
@@ -602,6 +610,29 @@ ul { list-style: none; margin: 0; padding: 0; }
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+.project-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.project-download-btn {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: var(--space-3);
+  padding: 8px 16px;
+  font-size: 12px;
+  background: transparent;
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.project-download-btn:hover {
+  background: var(--accent-soft);
+  transform: translateY(-2px);
 }
 
 .category-empty {

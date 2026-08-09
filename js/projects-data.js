@@ -18,6 +18,16 @@
  *   } | {
  *     type: 'pdf',
  *     pdfUrl: string        // path to a PDF in assets/work/, e.g. 'assets/work/capstone.pdf'
+ *   } | {
+ *     type: 'link',
+ *     url: string,          // external destination (e.g. a GitHub repo) —
+ *                           // thumbnail/title/tags link here
+ *     downloadUrl: string,  // optional — path to a downloadable file (e.g.
+ *                           // in assets/work/); renders a separate download
+ *                           // button below the card, since a file type like
+ *                           // .pbix can't be previewed inline like a PDF
+ *     downloadLabel: string // optional — download button text, defaults to
+ *                           // 'Download file'
  *   }
  * }
  */
@@ -77,8 +87,17 @@ window.PROJECTS = {
       }
     }
   ],
-  // Intentionally empty — renderCategory() shows a "Some great work
-  // coming soon!" message when a category has no projects. Don't add
-  // placeholder project objects back in; add real ones when ready.
-  personal: []
+  personal: [
+    {
+      title: 'Data Jobs Dashboard - PowerBI',
+      tags: ['PowerBI', 'BI', 'Analytics', 'Dashboard'],
+      icon: 'chart',
+      detail: {
+        type: 'link',
+        url: 'https://github.com/deathkiller99/Data_Jobs_Dashboard',
+        downloadUrl: 'assets/work/personal/Data_Jobs_Dashboard.pbix',
+        downloadLabel: 'Download .pbix'
+      }
+    }
+  ]
 };
