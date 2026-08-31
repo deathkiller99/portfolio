@@ -190,6 +190,101 @@
     });
   }
 
+  function initPageBeams() {
+    const canvas = document.querySelector('.page-beams');
+    if (!canvas || !canvas.getContext) return;
+
+    const ctx = canvas.getContext('2d');
+    const BEAM_COUNT = 10;
+    let beams = [];
+    let vw = 0;
+    let vh = 0;
+    let rafId = null;
+
+    function isDarkTheme() {
+      return document.documentElement.getAttribute('data-theme') !== 'light';
+    }
+
+    function createBeam(width, height) {
+      return {
+        x: Math.random() * width,
+        y: height + Math.random() * height * 0.4,
+        width: 70 + Math.random() * 90,
+        length: height * 1.6,
+        speed: 0.12 + Math.random() * 0.18,
+        opacity: 0.05 + Math.random() * 0.05,
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.006 + Math.random() * 0.01
+      };
+    }
+
+    function resize() {
+      vw = window.innerWidth;
+      vh = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = vw * dpr;
+      canvas.height = vh * dpr;
+      canvas.style.width = vw + 'px';
+      canvas.style.height = vh + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      beams = Array.from({ length: BEAM_COUNT }, function () {
+        return createBeam(vw, vh);
+      });
+    }
+
+    function drawBeam(beam) {
+      const pulsing = beam.opacity * (0.75 + Math.sin(beam.pulse) * 0.25);
+      ctx.save();
+      ctx.translate(beam.x, beam.y);
+      ctx.rotate((-12 * Math.PI) / 180);
+      const gradient = ctx.createLinearGradient(0, 0, 0, -beam.length);
+      gradient.addColorStop(0, 'hsla(217, 91%, 60%, 0)');
+      gradient.addColorStop(0.3, 'hsla(217, 91%, 60%, ' + pulsing + ')');
+      gradient.addColorStop(0.7, 'hsla(217, 91%, 60%, ' + pulsing + ')');
+      gradient.addColorStop(1, 'hsla(217, 91%, 60%, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(-beam.width / 2, -beam.length, beam.width, beam.length);
+      ctx.restore();
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, vw, vh);
+      ctx.filter = 'blur(30px)';
+      beams.forEach(function (beam) {
+        beam.y -= beam.speed;
+        beam.pulse += beam.pulseSpeed;
+        if (beam.y + beam.length < 0) {
+          Object.assign(beam, createBeam(vw, vh));
+          beam.y = vh + 40;
+        }
+        drawBeam(beam);
+      });
+      rafId = requestAnimationFrame(animate);
+    }
+
+    function start() {
+      if (rafId !== null) return;
+      animate();
+    }
+
+    function stop() {
+      if (rafId === null) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    resize();
+    if (isDarkTheme()) start();
+    window.addEventListener('resize', resize);
+
+    // The canvas is display:none in light theme (see styles.css) — stop
+    // the animation loop entirely rather than drawing to a hidden canvas
+    // 60 times a second, and resume it if the theme switches back.
+    new MutationObserver(function () {
+      if (isDarkTheme()) start(); else stop();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+
   function initScrollReveal() {
     const targets = document.querySelectorAll('.reveal');
     if (!targets.length) return;
@@ -217,6 +312,7 @@
     renderCategory('personal');
     initAccordion();
     initThemeToggle();
+    initPageBeams();
     initScrollReveal();
   });
 })();

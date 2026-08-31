@@ -5,22 +5,29 @@ Guidance for Claude Code (or any future contributor) working in this repository.
 ## Project overview
 
 A personal portfolio site for **Sai Harsha Malla**, aimed at recruiters. It's a
-**multi-page static site** with four pages — **Home**, **Work**, **About**,
-**Contact** — linked by a fixed top nav. Work's core job is to showcase three
-categories of projects (**Work**, **School**, **Personal**); About holds
-credentials (education, work experience), an intro, institution logos, and
-personal interests; Contact holds the three contact methods. No backend, no
-build step, no framework.
+**single-page static site** (`index.html`) — **Hero**, **Work**, **About**, and
+**Contact** are sections stacked on one page, reached by scrolling rather than
+a nav (there is no nav bar). Work's core job is to showcase three categories
+of projects (**Work**, **School**, **Personal**); About holds credentials
+(education, work experience), an intro, institution logos, and personal
+interests; Contact holds the three contact methods. No backend, no build
+step, no framework.
+
+The site was originally four separate pages (Home/Work/About/Contact) linked
+by a fixed top nav, then converted to this single-page structure. If you see
+references to that old shape anywhere outside this file (old notes, etc.),
+this document is the current source of truth.
 
 ## Tech stack & hosting
 
 - Plain HTML / CSS / JavaScript. No bundler, no package.json, no dependencies.
-- Font is loaded from Google Fonts (Space Grotesk) via a `<link>` in each page's `<head>`.
+- Font is loaded from Google Fonts (Space Grotesk) via a `<link>` in the
+  page's `<head>`.
 - Deploys to **Vercel** as a static site — pushing to the connected Git repo is
   the entire deploy process. Do not introduce a build step (e.g. a framework,
   a bundler) without discussing it first; the whole point of this stack is
   zero-friction editing and deployment.
-- Open any `.html` file directly in a browser (or serve the folder with any
+- Open `index.html` directly in a browser (or serve the folder with any
   static file server) to preview changes locally. No install step is required.
 - **`vercel.json`** overrides the `X-Robots-Tag` header to `all` on every
   path. Vercel auto-injects `X-Robots-Tag: noindex` on the default
@@ -34,28 +41,27 @@ build step, no framework.
   project-scoped alias — use this one in profiles/links, not the
   per-deploy `portfolio-<hash>-harsha9987.vercel.app` URLs printed by each
   `vercel --prod` run).
-- Every page's `<head>` carries Open Graph + Twitter Card meta tags
-  (`og:title`, `og:description`, `og:image`, `twitter:card`, etc.), each
-  using that same stable production URL and `assets/photo.jpg` as the
-  preview image. If the page title/description changes, update these
-  tags alongside `<title>`/the description `<meta>` — don't let them drift.
+- The page's `<head>` carries Open Graph + Twitter Card meta tags
+  (`og:title`, `og:description`, `og:image`, `twitter:card`, etc.), using
+  the stable production URL and `assets/photo.jpg` as the preview image. If
+  the title/description changes, update these tags alongside `<title>`/the
+  description `<meta>` — don't let them drift.
 
 ## File structure
 
 ```
 Portfolio/
-├── index.html              # Home: hero (no photo), role/ESSEC highlight, CTA to Work
-├── work.html                # Work: "What I've been working on lately" + project accordion
-├── about.html                 # About: photo, intro, experience/education (with logos), hobbies
-├── contact.html                # Contact: headline + contact rows (no footer on this page)
+├── index.html              # The whole site: Hero → Work → About → Contact
+│                            #   sections, floating theme toggle, no nav
 ├── css/
-│   └── styles.css          # design tokens + all styling, shared across all four pages
+│   └── styles.css          # design tokens + all styling
 ├── js/
-│   ├── projects-data.js     # project content (edit this to add/change projects) — only used by work.html
-│   └── script.js            # rendering, accordion, scroll-reveal — logic only, included on every page
+│   ├── projects-data.js     # project content (edit this to add/change projects) — included by index.html
+│   └── script.js            # rendering, accordion, scroll-reveal, ambient
+│                            #   beams animation, theme toggle — all page logic
 ├── assets/
-│   ├── photo.jpg
-│   ├── logos/                # institution logos used on About (essec.jpg, growthx.webp, etc.)
+│   ├── photo.jpg            # used once, in the Hero section
+│   ├── logos/                # institution logos used in About (essec.jpg, growthx.webp, etc.)
 │   └── work/                  # PDFs referenced by pdf-type projects, one subfolder per category:
 │       ├── essec-growthx/      #   school-category PDFs
 │       ├── worldline/           #   work-category PDFs
@@ -65,38 +71,66 @@ Portfolio/
 ```
 
 Keep this separation: **content lives in `projects-data.js` and directly in
-each page's markup; logic lives in `script.js`; visual styling lives in
+`index.html`'s markup; logic lives in `script.js`; visual styling lives in
 `styles.css`.** Don't hardcode project content into `script.js`, and don't
 inline styles into the HTML.
 
-`script.js` is included on every page but only acts on elements that exist —
-`renderCategory()` no-ops if its panel isn't on the page, `initAccordion()`
-and `initScrollReveal()` iterate over whatever `.category`/`.reveal` elements
-are present (zero or more). This is why the same unmodified script works
-across Home/Work/About/Contact without per-page branching.
+## Single-page structure — sections, not pages
 
-### Nav is duplicated across all four pages — keep it in sync
+There's no nav and no other HTML files to navigate to — everything is one
+scroll down `index.html`:
 
-There's no templating, so the nav block is copy-pasted into each `.html`
-file, differing only in which link carries `class="nav-link is-active"`
-and, since the light/dark toggle was added, an identical `<button
-class="theme-toggle" id="themeToggle">` at the end of `.nav-links`.
-**If you change the nav (add a page, rename a link, restyle it), you must
-edit all four files identically.** This was an explicit tradeoff — the
-alternative (fetching a shared nav partial via JS) would break "open the
-HTML file directly, no server needed," which was worth keeping.
+1. **Hero** (`<section id="hero">`) — name, headline, current role, and a
+   "View my work →" CTA that's a plain `href="#work"` anchor link (smooth
+   scrolling comes from `html { scroll-behavior: smooth; }` in `styles.css`
+   — no JS involved). A photo sits to its right on desktop; on mobile the
+   layout stacks with the **text first, photo second** (`flex-direction:
+   column`, not `column-reverse` — don't flip that back, it was a deliberate
+   fix so identity/positioning text leads on mobile too).
+2. **Work** (`<section id="work">`) — the project accordion.
+3. **About** (`<section id="about" class="about-section">`, wrapping three
+   inner sections — intro, Experience/Education columns, hobby cards).
+4. **Contact** (`<section id="contact">`).
 
-### Theme-detection script is also duplicated — and order matters
+**Hero and Work are both `min-height: 100vh`, content top-aligned** (not
+vertically centered — that was tried and made both sections feel like mostly
+empty space). This does two things: it keeps Work off-screen until the
+visitor scrolls (or clicks the Hero CTA), and it guarantees that when the CTA
+lands you on `#work`, About can't peek in at the bottom of the screen — the
+Work section's box is always at least one full viewport tall. If you change
+either section's content height substantially, re-check that landing on
+`#work` still shows *only* Work.
 
-Each page's `<head>` starts with an inline `<script>` (right after `<meta
+**Section boundaries get a divider**, not a nav: `.projects` and
+`.about-section` (the old page boundaries) get `border-top: 1px solid
+var(--border)` plus generous `padding-top`/`margin-top`. `.about-section`'s
+own top spacing was deliberately kept small (`padding-top: var(--space-6)`,
+no extra margin) because Work's forced `min-height: 100vh` already provides
+a large gap on its own — stacking a second full `--space-8` gap on top of
+that looked excessive. `.contact` has no `border-top` (removed by request —
+no divider between "Outside of Work" and Contact).
+
+The floating **theme toggle** (`.theme-toggle-float`, fixed top-right) is
+the only persistent UI chrome on the page — there's deliberately no
+section-jump control; one was added and then removed because a taller
+control panel ended up overlapping the Hero photo and the Work accordion's
+icons at various scroll positions. If a "jump to section" affordance is
+wanted again, keep it small enough not to repeat that.
+
+`script.js` has no per-page branching (there's only one page) — it just
+queries for elements and no-ops if something isn't present (`renderCategory`
+returns early if its panel is missing, `initAccordion`/`initScrollReveal`
+iterate over whatever `.category`/`.reveal` elements exist).
+
+### The inline theme-detection script
+
+`index.html`'s `<head>` starts with an inline `<script>` (right after `<meta
 charset>`, before everything else) that reads `localStorage.getItem('theme')`,
 falls back to `prefers-color-scheme` if nothing's saved, and sets
-`data-theme` on `<html>` synchronously. It must run this early and inline
-(not deferred, not in `script.js`) so the correct theme is applied *before*
-the browser paints — otherwise every navigation would flash dark before
-switching to a saved light preference. Same copy-paste-across-four-files
-tradeoff as the nav; keep this exact script identical in all four pages if
-it ever needs to change.
+`data-theme` on `<html>` synchronously. It must stay this early and inline
+(not deferred, not moved into `script.js`) so the correct theme is applied
+*before* the browser paints — otherwise reloading would flash dark before
+switching to a saved light preference.
 
 ## Design system
 
@@ -106,75 +140,129 @@ token value — don't hardcode a new color/spacing value at the point of use.
 
 - **Theme**: dark by default (background `#0a0b0f`, elevated surfaces
   `#13151c`), with a **light theme** available via `:root[data-theme="light"]`
-  in `styles.css` (background `#ffffff`, elevated `#f3f4f7`). Both themes
-  share the same token names (`--bg`, `--text`, `--accent`, etc.) — the
-  light override block only changes the values, so every component that
-  already uses the tokens works in both themes automatically with no
-  special-casing. The `.theme-toggle` is a sliding switch (a pill track
-  with static sun/moon icons at each end and a `.theme-toggle-thumb` that
-  slides between them), in the nav, wired up by `initThemeToggle()` in
-  `script.js`. It flips the `data-theme` attribute on `<html>` and persists
-  the choice to `localStorage` (`theme` key); absence of the
-  attribute/stored value means dark. **The thumb's position is pure CSS**
+  in `styles.css`. Light theme's background is a **warm off-white/cream**
+  (`#f4efe4`, elevated `#ece7d9`, hover `#e3dcca`, border `#dcd5c2`) —
+  deliberately not pure white; it was `#ffffff` originally, then warmed up
+  twice by request (once to cream, then deepened further) partly for its own
+  sake and partly so the light-theme ambient blue gradient (below) reads
+  with more contrast against it. Both themes share the same token names
+  (`--bg`, `--text`, `--accent`, etc.) — the light override block only
+  changes the values, so every component that already uses the tokens works
+  in both themes automatically with no special-casing. The `.theme-toggle`
+  is a sliding switch (a pill track with static sun/moon icons at each end
+  and a `.theme-toggle-thumb` that slides between them). It lives alone in a
+  `.theme-toggle-float` wrapper (`position: fixed`, top-right corner — see
+  "Single-page structure" above for why there's nothing else in that
+  corner), wired up by `initThemeToggle()` in `script.js`. It flips the
+  `data-theme` attribute on `<html>` and persists the choice to
+  `localStorage` (`theme` key); absence of the attribute/stored value means
+  dark. **The thumb's position is pure CSS**
   (`:root[data-theme="light"] .theme-toggle-thumb { left: 3px; }`, default
-  `left: 29px`) driven directly off the same root attribute the inline
-  head script sets before paint — not off JS/`aria-checked` — specifically
-  so there's no flash or jump on page load. `initThemeToggle()` only
-  toggles the attribute on click and keeps `aria-checked` (`role="switch"`)
-  in sync for assistive tech; it does not touch the thumb's visual position.
-  See "Theme-detection script" above for the flash-of-wrong-theme handling.
+  `left: 29px`) driven directly off the same root attribute the inline head
+  script sets before paint — not off JS/`aria-checked` — specifically so
+  there's no flash or jump on page load. `initThemeToggle()` only toggles
+  the attribute on click and keeps `aria-checked` (`role="switch"`) in sync
+  for assistive tech; it does not touch the thumb's visual position.
 - **Accent**: a single electric blue — `#3b82f6` in dark, a deeper `#1d4ed8`
-  in light (for text-contrast reasons against a white background) — used
-  sparingly for headings, tags, hover states, the accordion icon, the
-  active nav link, the CTA button, and the theme-toggle thumb. Do not
-  introduce a second accent color, and don't add a third color for light
-  mode beyond this one deliberate shade adjustment.
+  in light (for text-contrast reasons against the light background) — used
+  sparingly for headings, tags, hover states, the accordion icon, the CTA
+  button, and the theme-toggle thumb. Do not introduce a second accent
+  color, and don't add a third color for light mode beyond this one
+  deliberate shade adjustment. There's also a `--accent-rgb` token (the same
+  color as a bare `R, G, B` component list, e.g. `59, 130, 246`) specifically
+  so hover box-shadows can stay theme-correct via `rgba(var(--accent-rgb),
+  0.4)` instead of hardcoding the dark theme's hex at the call site — every
+  accent-tinted `box-shadow` in the file (`.timeline-item:hover
+  .timeline-logo`, `.btn-primary:hover`, `.category:hover`,
+  `.project-card:hover`) uses this pattern. Use it for any new glow/shadow
+  that should use the accent color, rather than writing a new hardcoded
+  `rgba(59, 130, 246, ...)`.
 - **Type**: Space Grotesk (sharp, geometric sans) for everything — headings
   and body. No serif, no monospace. Max usable weight is 700 (Space Grotesk
   has no 800) — don't request a heavier weight.
 - **Spacing**: an 8px-based scale (`--space-1` through `--space-8`). Use these
   variables instead of arbitrary pixel values.
-- **Motion**: subtle only. Hover states (card lift + soft accent glow, footer
-  link underline, contact-row lift, CTA button lift), a fade/slide on the
-  project-category accordion, a staggered fade-up on project cards when a
-  category opens, and a soft scroll-reveal (`.reveal` class, applied to the
-  hero, `.category` boxes, and the About-page sections, driven by
-  `initScrollReveal()` in `script.js`) as they enter the viewport. Do not add
-  attention-grabbing or decorative animation — it should read as restrained
-  and professional, not flashy.
-- **Ambient background**: a fixed, very low-opacity radial-gradient glow
-  (`body::before`) plus a faint grain texture (`body::after`, an SVG
-  turbulence data URI at ~3.5% opacity) sit behind all content on every page.
-  These are deliberately subtle — if either becomes visually noticeable
-  rather than atmospheric, that's a bug, not a feature to lean into further.
-- **Nav**: fixed to the top of the viewport on every page (`--nav-height:
-  72px`), translucent + blurred background, wordmark ("Portfolio", in
-  accent color) on the left, Home/Work/About/Contact links on the right,
-  active page indicated by an accent underline. Because it's fixed, every
-  page's main content column (`.main`) carries top padding of
-  `calc(var(--nav-height) + var(--space-7))` to clear it — don't remove that
-  padding when touching `.main`.
-- **Layout**: no sidebar anymore (removed when the site moved from
-  single-page to multi-page). Every page is a single centered content column,
-  `max-width: var(--content-max-width)` (currently `1240px`), under the
-  fixed nav. This only widens the *layout* (grids like project cards,
-  About's two-column experience/education, hobby cards) — text elements
-  (`.headline`, `.about-intro-text p`, `.contact-headline`) keep their own
-  character-based `max-width` so paragraph line length stays readable
-  regardless of this value.
+- **Motion**: mostly subtle — hover states (card lift + soft accent glow,
+  contact-row lift, CTA button lift), a fade/slide on the project-category
+  accordion, a staggered fade-up on project cards when a category opens, and
+  a soft scroll-reveal (`.reveal` class, applied to the hero, `.category`
+  boxes, and the About-page sections, driven by `initScrollReveal()` in
+  `script.js`) as they enter the viewport. The one more dynamic exception is
+  the **ambient beams animation** (see below), which exists specifically
+  because a fully static background felt too plain in dark mode — it was
+  tuned down significantly from an initial version (single accent hue
+  instead of multi-hue, low opacity, slow drift) to stay atmospheric rather
+  than decorative. Don't add further attention-grabbing motion beyond these
+  two categories.
+- **Ambient background**: three layered pieces, all `position: fixed`
+  (viewport-relative, not page-height-relative) and `pointer-events: none`,
+  all behind real content:
+  - `body::before` — a soft radial-gradient glow. In dark theme it's a
+    top-right + bottom-left glow using `--accent-soft`. In light theme
+    (`:root[data-theme="light"] body::before`) it's fully overridden to two
+    washes rising from the **bottom-left and bottom-right corners** toward
+    center, using the same accent blue at a custom `rgba(29, 78, 216, 0.15)`
+    (stronger than the shared `--accent-soft` token, and a dedicated literal
+    rather than changing that token, since `--accent-soft` is also used
+    elsewhere for tags/hover backgrounds).
+  - `body::after` — a faint grain texture (an SVG turbulence data URI at
+    ~3.5% opacity, `mix-blend-mode: overlay`), same in both themes.
+  - `.page-beams` — a `<canvas>` driven by `initPageBeams()` in `script.js`:
+    ~10 slow-drifting, softly pulsing light beams, single accent hue
+    (`hsl(217, 91%, 60%)`), heavily blurred, very low opacity. **Dark theme
+    only** — `:root[data-theme="light"] .page-beams { display: none; }`,
+    because the fixed blue hue didn't read well against the light
+    background. `initPageBeams()` uses a `MutationObserver` on
+    `<html>`'s `data-theme` attribute to start/stop the animation loop
+    entirely when the theme is toggled, rather than drawing to a hidden
+    canvas 60 times a second.
+
+  All three are deliberately subtle — if any of them becomes visually
+  noticeable rather than atmospheric, that's a bug, not a feature to lean
+  into further.
+
+  **Stacking-context gotcha, learned the hard way:** these all used to have
+  `z-index: -1` (the natural instinct for "put this behind everything"), and
+  it silently made them **completely invisible** — a real element (or even a
+  pseudo-element) with a negative `z-index` inside `body` paints *behind
+  `body`'s own solid background color*, not above it, once you also account
+  for `body { display: flex }` making its children (`.main`, `.site-footer`)
+  behave like positioned/z-indexed content rather than plain flow content.
+  The fix that's now in place: `body::before`/`body::after`/`.page-beams`
+  all use a small **positive** `z-index` (`0`/`1`), and `.main` and
+  `.site-footer` are given an **explicitly higher** `z-index: 2` (with
+  `position: relative`) so real content is guaranteed to paint above the
+  ambient layers regardless of implicit flex-item/DOM-order stacking rules.
+  If you ever add another fixed/absolute decorative layer, use this same
+  positive-z-index-plus-explicit-content-z-index pattern — don't reach for
+  `-1`, and verify with actual pixel sampling (not just "it looks fine in
+  one screenshot") if you're unsure, since this bug is easy to miss in a
+  quick visual check.
+- **Layout**: no nav to clear anymore — `.main`'s top padding is a plain
+  `var(--space-8)` (no `calc()` involving a nav height). Every section is
+  part of the same centered content column, `max-width:
+  var(--content-max-width)` (currently `1240px`). This only widens the
+  *layout* (grids like project cards, About's two-column
+  experience/education, hobby cards) — text elements (`.headline`,
+  `.about-intro-text p`) keep their own readable measure; `.contact-headline`
+  is forced to a single line only above a `1100px` min-width breakpoint
+  (below that it wraps normally, to avoid horizontal overflow at in-between
+  viewport widths).
 - **Sticky footer**: `body` is a flex column (`min-height: 100vh`), `.main`
   carries `flex: 1 0 auto`, and `.site-footer` has `flex-shrink: 0`. This
-  keeps the footer pinned to the bottom of the viewport on short pages
-  (Home, About, Contact) instead of floating partway up on tall screens —
-  don't change `.main`'s `flex` or `body`'s `display: flex` without
-  preserving this behavior.
-- **Home has no photo.** It was removed by explicit request; the hero is
-  currently a single text column (eyebrow, name, headline, role-highlight
-  box). This is an interim state — the site owner wasn't sure what, if
-  anything, should fill that visual space, so don't assume the current
-  single-column hero is the final call; a follow-up design pass may add
-  something back (that's a design decision for the owner, not one to make
-  unilaterally).
+  matters less now that the page is long by default (Hero and Work alone are
+  each a full viewport tall), but don't break it regardless — don't change
+  `.main`'s `flex` or `body`'s `display: flex` without preserving this
+  behavior.
+- **Hero photo**: `.hero-photo` sits to the right of the hero text on
+  desktop (`assets/photo.jpg`, 280×280, rounded corners). It intentionally
+  has **no colored border/glow** — a soft blue halo (`box-shadow` ring using
+  `--accent-soft`) was tried and rejected ("the blue does not look good on
+  the dark background"); it now just uses the same neutral card treatment as
+  everything else on the site (`border: 1px solid var(--border)` + a plain
+  dark drop-shadow for lift, no color). This is a different location than
+  the old multi-page site's About-page photo — About no longer has a photo
+  at all; `assets/photo.jpg` is now referenced once, in the Hero.
 
 ## Content conventions
 
@@ -184,7 +272,7 @@ token value — don't hardcode a new color/spacing value at the point of use.
   an industry (e.g. fintech, payments) or a job function. This was an
   explicit choice made with the site owner. If asked to revise the headline,
   preserve that constraint unless told otherwise.
-- Credential entries (Experience, Education — on the About page) show **no
+- Credential entries (Experience, Education — in the About section) show **no
   dates** and only two lines: the organization/institution name (bold), then
   the role or degree below it. No extra detail line. Order is
   most-recent-first within each section, and Experience is listed before
@@ -203,8 +291,8 @@ token value — don't hardcode a new color/spacing value at the point of use.
 ## Project data model
 
 Projects are plain JS objects in `js/projects-data.js`, grouped into three
-arrays: `window.PROJECTS.work`, `.school`, `.personal`. Only `work.html`
-includes this file and renders them. Shape:
+arrays: `window.PROJECTS.work`, `.school`, `.personal`. `index.html` includes
+this file (before `script.js`) and renders them into the Work section. Shape:
 
 ```js
 {
@@ -313,22 +401,21 @@ together.
 **Empty categories get a "coming soon" message, not fake placeholders.**
 `renderCategory()` checks `projects.length` and, if empty, renders a single
 centered `.category-empty` message ("Some great work coming soon!") instead
-of iterating an empty array. `personal` is currently `[]` for exactly this
-reason — don't add placeholder project objects back in to "fill" a category;
-leave the array empty and let the message do its job until there's real
-content.
+of iterating an empty array. Don't add placeholder project objects back in
+to "fill" an empty category — leave the array empty and let the message do
+its job until there's real content.
 
 **To update credentials (education/work experience):** edit the `<li
-class="timeline-item">` entries directly in `about.html`, inside
-`.about-columns`. Each item is `.timeline-logo` (small logo/monogram tile),
-then a `.timeline-text` wrapper containing `.timeline-org` (bold) and
-`.timeline-title` (role/degree, below) — no dates. There is no data file for
-these — they're simple enough to stay as markup.
+class="timeline-item">` entries directly in `index.html`, inside the About
+section's `.about-columns`. Each item is `.timeline-logo` (small logo/
+monogram tile), then a `.timeline-text` wrapper containing `.timeline-org`
+(bold) and `.timeline-title` (role/degree, below) — no dates. There is no
+data file for these — they're simple enough to stay as markup.
 
 **About the `.timeline-logo` tiles:** each renders a real logo image from
 `assets/logos/` (`essec.jpg`, `growthx.webp`, `icici-lombard.jpg`,
 `manipal.jpg`, `worldline.webp`). The tile background is intentionally
-white (`#fff`), not the dark theme color, because the source logos mix
+white (`#fff`), not the theme background color, because the source logos mix
 solid-color and transparent/white backgrounds — a white chip keeps every
 logo legible regardless. There's no padding inside the tile — logos render
 at full size via `object-fit: contain` so they fill the frame, in their real
@@ -341,11 +428,12 @@ request). To add a new institution logo, drop the image in
 `assets/logos/` and add an `<img>` inside a `.timeline-logo` div, same
 pattern as the existing entries.
 
-**To update contact info:** edit the links inside `<footer
-class="site-footer">` (present on Home, Work, About — **not** Contact,
-which has its own dedicated `.contact-row` list instead) **and** the
-`.contact-row` entries in `contact.html`. The same three values appear in
-both places; update them together.
+**To update contact info:** edit the `.contact-row` entries inside the
+Contact section in `index.html`. The `<footer class="site-footer">` no
+longer duplicates this — it was simplified to just the text "Harsha's
+Portfolio" (the old footer's three contact links were removed once the
+Contact section itself sat directly above it on the same page), so it
+doesn't need to be kept in sync with contact info changes anymore.
 
 ## Current state / placeholders
 
@@ -370,21 +458,18 @@ both places; update them together.
   `renderCategory()` falls back to the "Some great work coming soon!"
   message (see the Project Data Model section above) — don't add
   placeholder project objects to fill it.
-- **About page now has real content throughout**: the two intro paragraphs,
-  Experience/Education (with real institution logos), and the three "Outside
-  of Work" hobby cards (Running, Vibe Coding, Cooking — each with a small
-  outline SVG icon via `.hobby-icon`, inline in the markup, not an icon
-  library) are all real. The page's *visual design* may still get a
-  dedicated pass later, but there's no longer placeholder copy to swap in.
-  In the intro, "payments and fintech" is deliberately highlighted in accent
-  color (`.text-accent`) to signal the industry focus — keep this the one
-  inline text highlight on the page rather than adding more.
-- Real content wired in: name, headline, role/ESSEC highlight on Home, full
-  About page (intro, experience/education with logos, hobbies), contact
-  links (LinkedIn, phone, email) on the footer and the Contact page, and the
-  About-page photo (`assets/photo.jpg`). To swap the photo, replace
-  `assets/photo.jpg` (keep it roughly square, ~220×220 or larger — it's
-  cropped with `object-fit: cover`).
+- **About section has real content throughout**: the two intro paragraphs
+  (now horizontally centered as a single ~640px column with justified text,
+  since it lost its photo when that moved to the Hero), Experience/Education
+  (with real institution logos), and the three "Outside of Work" hobby cards
+  (Running, Vibe Coding, Cooking — each with a small outline SVG icon via
+  `.hobby-icon`, inline in the markup, not an icon library) are all real. In
+  the intro, "payments and fintech" and "AI native" are highlighted in
+  accent color (`.text-accent`) — keep these as the inline text highlights
+  on the page rather than adding more.
+- Real content wired in: name, headline, current role on Hero, full About
+  section (intro, experience/education with logos, hobbies), and contact
+  links (LinkedIn, phone, email) in the Contact section.
 - There is no resume/CV download button — this was an explicit choice (the
   site itself is meant to stand in for the resume).
 
@@ -393,6 +478,7 @@ both places; update them together.
 This directory contains tooling state from prior Claude Code sessions,
 including leftover mockup artifacts from an earlier, unrelated brainstorming
 session (different positioning — "GTM & Product Strategy, Payments" — and a
-different layout, with no sidebar or photo). **That prior direction was
-explicitly discarded** in favor of the design documented above. Don't treat
-anything under `.superpowers/` as current project content or direction.
+different layout, with a sidebar and no single-page structure). **That prior
+direction was explicitly discarded** in favor of the design documented
+above. Don't treat anything under `.superpowers/` as current project content
+or direction.

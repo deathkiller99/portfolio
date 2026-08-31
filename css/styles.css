@@ -11,9 +11,9 @@
   --text-muted: #9aa0ae;
   --text-faint: #676d7a;
   --accent: #3b82f6;
+  --accent-rgb: 59, 130, 246;
   --accent-soft: rgba(59, 130, 246, 0.14);
   --accent-border: rgba(59, 130, 246, 0.35);
-  --nav-bg: rgba(10, 11, 15, 0.75);
 
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
@@ -30,7 +30,6 @@
   --radius-md: 10px;
   --radius-lg: 16px;
 
-  --nav-height: 72px;
   --content-max-width: 1240px;
   --transition: 220ms cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -42,22 +41,26 @@
    by .theme-toggle in script.js. Absence of the attribute means dark,
    so dark stays the default for anyone without JS. */
 :root[data-theme="light"] {
-  --bg: #ffffff;
-  --bg-elevated: #f3f4f7;
-  --bg-elevated-hover: #e9ebf0;
-  --border: #dfe1e6;
+  --bg: #f4efe4;
+  --bg-elevated: #ece7d9;
+  --bg-elevated-hover: #e3dcca;
+  --border: #dcd5c2;
   --text: #14161c;
   --text-muted: #565b66;
   --text-faint: #8a8f99;
   --accent: #1d4ed8;
+  --accent-rgb: 29, 78, 216;
   --accent-soft: rgba(29, 78, 216, 0.10);
   --accent-border: rgba(29, 78, 216, 0.30);
-  --nav-bg: rgba(255, 255, 255, 0.75);
 
   color-scheme: light;
 }
 
 * { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
 
 html, body {
   margin: 0;
@@ -74,13 +77,19 @@ body {
   min-height: 100vh;
 }
 
-/* Faint ambient glow + grain — decorative, sits behind all content */
+/* Faint ambient glow + grain — decorative, sits behind all content.
+   z-index is a small POSITIVE value, not negative: a negative z-index on
+   a real stacking-context-forming box (position:fixed always forms one)
+   paints behind body's own solid background and becomes invisible — this
+   was confirmed by direct pixel sampling while debugging the same issue
+   on .page-beams below. `.main`/`.site-footer` are given an explicitly
+   higher z-index so real content still always paints above this. */
 body::before,
 body::after {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -90,10 +99,45 @@ body::before {
     radial-gradient(500px 400px at 0% 100%, rgba(59, 130, 246, 0.08), transparent 60%);
 }
 
+/* Light theme swaps the glow for two soft accent washes rising from the
+   bottom corners toward center — same accent blue used for links/headings
+   elsewhere (rgb(29, 78, 216), the light theme's --accent), just at a
+   custom opacity (15%, stronger than the shared --accent-soft token's 10%)
+   so it doesn't also change every other component that uses that token. */
+:root[data-theme="light"] body::before {
+  background:
+    radial-gradient(600px 480px at 0% 100%, rgba(29, 78, 216, 0.15), transparent 65%),
+    radial-gradient(600px 480px at 100% 100%, rgba(29, 78, 216, 0.15), transparent 65%);
+}
+
 body::after {
   opacity: 0.035;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Ambient animated backdrop (see initPageBeams in script.js) — a canvas
+   field of slow-drifting light beams, fixed behind real content. Unlike
+   body::before/::after (pseudo-elements, always painted as body's first/
+   last generated box), a real element with a negative z-index here paints
+   behind body's own solid background and is invisible — confirmed by
+   direct pixel sampling. A small positive z-index keeps it above body's
+   background; `.main`/`.site-footer` are given an explicitly higher
+   z-index (see below) so real content is always painted above it —
+   don't rely on implicit flex-item/DOM-order stacking for this. */
+.page-beams {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* The beams' fixed blue hue doesn't read well against the warm light
+   background, so they're dark-theme only for now rather than retuned. */
+:root[data-theme="light"] .page-beams {
+  display: none;
 }
 
 /* ---------------------------------------------------------
@@ -122,64 +166,13 @@ a {
 ul { list-style: none; margin: 0; padding: 0; }
 
 /* ---------------------------------------------------------
-   Nav — fixed top bar, present on every page
+   Floating theme toggle
 --------------------------------------------------------- */
-.nav {
+.theme-toggle-float {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  height: var(--nav-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-7);
-  background: var(--nav-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
-}
-
-.nav-wordmark {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.nav-links {
-  display: flex;
-  gap: var(--space-6);
-}
-
-.nav-link {
-  position: relative;
-  padding: 4px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-muted);
-  transition: color var(--transition);
-}
-
-.nav-link:hover {
-  color: var(--text);
-}
-
-.nav-link.is-active {
-  color: var(--accent);
-}
-
-.nav-link.is-active::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
+  top: var(--space-5);
+  right: var(--space-5);
+  z-index: 20;
 }
 
 .theme-toggle {
@@ -289,7 +282,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .timeline-item:hover .timeline-logo {
   transform: translateY(-5px);
   border-color: var(--accent-border);
-  box-shadow: 0 16px 26px -10px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 16px 26px -10px rgba(var(--accent-rgb), 0.5);
 }
 
 .timeline-text {
@@ -314,15 +307,45 @@ ul { list-style: none; margin: 0; padding: 0; }
    Main / hero
 --------------------------------------------------------- */
 .main {
+  position: relative;
+  z-index: 2;
   flex: 1 0 auto;
-  padding: calc(var(--nav-height) + var(--space-7)) var(--space-7) var(--space-8);
+  padding: var(--space-8) var(--space-7) var(--space-8);
   max-width: var(--content-max-width);
   width: 100%;
   margin: 0 auto;
 }
 
 .hero {
-  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-7);
+  min-height: calc(100vh - (var(--space-8) * 2));
+}
+
+.hero-photo {
+  flex-shrink: 0;
+  width: 280px;
+  height: 280px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.6);
+}
+
+.hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.btn.hero-cta {
+  display: flex;
+  width: fit-content;
+  margin-top: var(--space-6);
 }
 
 .eyebrow {
@@ -399,17 +422,33 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 28px -12px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 14px 28px -12px rgba(var(--accent-rgb), 0.5);
 }
 
 /* ---------------------------------------------------------
    Projects — accordion categories
 --------------------------------------------------------- */
-.projects {
+.projects,
+.contact {
+  padding-top: var(--space-8);
   margin-top: var(--space-8);
+}
+
+.about-section {
+  padding-top: var(--space-6);
+}
+
+.projects,
+.about-section {
+  border-top: 1px solid var(--border);
+}
+
+.projects {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   gap: var(--space-4);
+  min-height: 100vh;
 }
 
 .projects-heading {
@@ -426,6 +465,13 @@ ul { list-style: none; margin: 0; padding: 0; }
   border-radius: var(--radius-md);
   background: var(--bg-elevated);
   overflow: hidden;
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.category:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-border);
+  box-shadow: 0 14px 28px -18px rgba(var(--accent-rgb), 0.4);
 }
 
 .category-toggle {
@@ -455,9 +501,16 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .category-icon {
   position: relative;
-  width: 16px;
-  height: 16px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  transition: background var(--transition);
+}
+
+.category-toggle:hover .category-icon {
+  background: var(--accent-border);
 }
 
 .category-icon::before,
@@ -525,7 +578,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .project-card:hover {
   transform: translateY(-3px);
   border-color: var(--accent-border);
-  box-shadow: 0 12px 24px -12px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 12px 24px -12px rgba(var(--accent-rgb), 0.35);
 }
 
 .category-panel.is-open .project-card {
@@ -647,34 +700,26 @@ ul { list-style: none; margin: 0; padding: 0; }
    About page
 --------------------------------------------------------- */
 .about-intro {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-7);
-  margin-bottom: var(--space-8);
+  max-width: 640px;
+  margin: 0 auto var(--space-8);
+  text-align: center;
 }
 
-.about-photo {
-  flex-shrink: 0;
-  width: 220px;
-  height: 220px;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-}
-
-.about-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.about-heading {
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+  text-align: center;
+  margin: 0 0 var(--space-4);
 }
 
 .about-intro-text p {
   font-size: 16px;
   line-height: 1.75;
   color: var(--text-muted);
-  max-width: 60ch;
+  text-align: justify;
+  text-align-last: left;
   margin: var(--space-4) 0 0;
 }
 
@@ -726,25 +771,40 @@ ul { list-style: none; margin: 0; padding: 0; }
 /* ---------------------------------------------------------
    Contact page
 --------------------------------------------------------- */
+.contact {
+  text-align: center;
+}
+
 .contact-headline {
-  font-size: clamp(24px, 3vw, 32px);
+  font-size: clamp(20px, 2.4vw, 28px);
   font-weight: 600;
   line-height: 1.4;
-  max-width: 32ch;
-  margin: 0 0 var(--space-7);
+  margin: 0 auto var(--space-7);
+}
+
+/* Force a single line only once the viewport is comfortably wide enough
+   for it (~1000px+ of content width) — below that, let it wrap normally
+   rather than risk horizontal overflow. */
+@media (min-width: 1100px) {
+  .contact-headline {
+    white-space: nowrap;
+  }
 }
 
 .contact-list {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  max-width: 460px;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
 }
 
 .contact-row {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  gap: 6px;
+  min-width: 200px;
   padding: var(--space-4) var(--space-5);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -775,6 +835,8 @@ ul { list-style: none; margin: 0; padding: 0; }
    Footer
 --------------------------------------------------------- */
 .site-footer {
+  position: relative;
+  z-index: 2;
   flex-shrink: 0;
   width: 100%;
   display: flex;
@@ -787,60 +849,24 @@ ul { list-style: none; margin: 0; padding: 0; }
   color: var(--text-muted);
 }
 
-.site-footer a {
-  position: relative;
-  transition: color var(--transition);
-}
-
-.site-footer a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 100%;
-  height: 1px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--transition);
-}
-
-.site-footer a:hover {
-  color: var(--accent);
-}
-
-.site-footer a:hover::after {
-  transform: scaleX(1);
-}
-
-.footer-sep {
-  color: var(--text-faint);
-}
-
 /* ---------------------------------------------------------
    Responsive
 --------------------------------------------------------- */
 @media (max-width: 800px) {
-  .nav {
-    padding: 0 var(--space-4);
-  }
-
-  .nav-links {
-    gap: var(--space-4);
-  }
-
   .main {
-    padding: calc(var(--nav-height) + var(--space-5)) var(--space-4) var(--space-6);
+    padding: var(--space-6) var(--space-4) var(--space-6);
   }
 
-  .about-intro {
-    flex-direction: column-reverse;
-    gap: var(--space-5);
+  .hero {
+    flex-direction: column;
+    min-height: auto;
+    gap: var(--space-6);
+    text-align: left;
   }
 
-  .about-photo {
-    width: 140px;
-    height: 140px;
+  .hero-photo {
+    width: 160px;
+    height: 160px;
   }
 
   .about-columns {
