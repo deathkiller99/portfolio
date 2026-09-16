@@ -62,6 +62,38 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Browser-default surfaces, themed from the palette instead of left at
+   browser defaults — text selection, scrollbar, and keyboard focus. */
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* Scrollbar hidden entirely (page still scrolls normally, just no
+   visible track/thumb) — Firefox via scrollbar-width, legacy Edge/IE via
+   -ms-overflow-style, WebKit/Chromium via the ::-webkit-scrollbar rule. */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -74,16 +106,16 @@ html, body {
 body {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Faint ambient glow + grain — decorative, sits behind all content.
    z-index is a small POSITIVE value, not negative: a negative z-index on
    a real stacking-context-forming box (position:fixed always forms one)
    paints behind body's own solid background and becomes invisible — this
-   was confirmed by direct pixel sampling while debugging the same issue
-   on .page-beams below. `.main`/`.site-footer` are given an explicitly
-   higher z-index so real content still always paints above this. */
+   was confirmed by direct pixel sampling while debugging this exact rule.
+   `.main`/`.site-footer` are given an explicitly higher z-index so real
+   content still always paints above this. */
 body::before,
 body::after {
   content: '';
@@ -93,17 +125,18 @@ body::after {
   pointer-events: none;
 }
 
+/* Same two-corner wash in both themes — a soft accent rise from the
+   bottom-left and bottom-right toward center, subtle by design. Dark and
+   light use different literal rgba() values (rather than the shared
+   --accent-soft token) so each can be tuned to its own background:
+   dark needs less alpha to read as equally subtle, since color shows up
+   more readily against near-black than against the light theme's cream. */
 body::before {
   background:
-    radial-gradient(600px 500px at 85% 0%, var(--accent-soft), transparent 60%),
-    radial-gradient(500px 400px at 0% 100%, rgba(59, 130, 246, 0.08), transparent 60%);
+    radial-gradient(600px 480px at 0% 100%, rgba(59, 130, 246, 0.10), transparent 65%),
+    radial-gradient(600px 480px at 100% 100%, rgba(59, 130, 246, 0.10), transparent 65%);
 }
 
-/* Light theme swaps the glow for two soft accent washes rising from the
-   bottom corners toward center — same accent blue used for links/headings
-   elsewhere (rgb(29, 78, 216), the light theme's --accent), just at a
-   custom opacity (15%, stronger than the shared --accent-soft token's 10%)
-   so it doesn't also change every other component that uses that token. */
 :root[data-theme="light"] body::before {
   background:
     radial-gradient(600px 480px at 0% 100%, rgba(29, 78, 216, 0.15), transparent 65%),
@@ -114,30 +147,6 @@ body::after {
   opacity: 0.035;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* Ambient animated backdrop (see initPageBeams in script.js) — a canvas
-   field of slow-drifting light beams, fixed behind real content. Unlike
-   body::before/::after (pseudo-elements, always painted as body's first/
-   last generated box), a real element with a negative z-index here paints
-   behind body's own solid background and is invisible — confirmed by
-   direct pixel sampling. A small positive z-index keeps it above body's
-   background; `.main`/`.site-footer` are given an explicitly higher
-   z-index (see below) so real content is always painted above it —
-   don't rely on implicit flex-item/DOM-order stacking for this. */
-.page-beams {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-/* The beams' fixed blue hue doesn't read well against the warm light
-   background, so they're dark-theme only for now rather than retuned. */
-:root[data-theme="light"] .page-beams {
-  display: none;
 }
 
 /* ---------------------------------------------------------
@@ -170,9 +179,48 @@ ul { list-style: none; margin: 0; padding: 0; }
 --------------------------------------------------------- */
 .theme-toggle-float {
   position: fixed;
-  top: var(--space-5);
-  right: var(--space-5);
+  top: calc(var(--space-5) + env(safe-area-inset-top));
+  right: calc(var(--space-5) + env(safe-area-inset-right));
   z-index: 20;
+}
+
+/* Bottom-right, opposite corner from the theme toggle — deliberately, so
+   it can never repeat the toggle/accordion overlap bug fixed earlier.
+   Hidden until initBackToTop() (script.js) reveals it once Hero has
+   scrolled out of view. */
+.back-to-top {
+  position: fixed;
+  bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+  right: calc(var(--space-5) + env(safe-area-inset-right));
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+}
+
+.back-to-top svg {
+  width: 20px;
+  height: 20px;
+}
+
+.back-to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.back-to-top:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+  transform: translateY(-2px);
 }
 
 .theme-toggle {
@@ -316,16 +364,34 @@ ul { list-style: none; margin: 0; padding: 0; }
   margin: 0 auto;
 }
 
+/* .name / .hero-photo / .hero-text stack in plain block flow, in that DOM
+   order — the photo is pulled out of flow via position:absolute so it
+   doesn't affect the gap between name and hero-text at all (an earlier
+   version used grid-template-areas with the photo spanning both rows,
+   which forced the grid's auto row-sizing to inflate the *name* row to
+   fit the photo's 280px height — a large, wrong gap right after the
+   name). On mobile the override below simply switches .hero-photo back
+   to position:static, which drops it into normal flow exactly where it
+   already sits in the DOM: after the name, before the rest of the text. */
 .hero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-7);
-  min-height: calc(100vh - (var(--space-8) * 2));
+  position: relative;
+  min-height: calc(100dvh - (var(--space-8) * 2));
 }
 
+.hero .name,
+.hero-text {
+  max-width: calc(100% - 280px - var(--space-7));
+}
+
+/* Plain bordered card, matching the size/treatment the site launched
+   with (280x280, neutral border, no color halo — see CLAUDE.md's "Hero
+   photo" section). A few other treatments (enlarged + bled off the
+   viewport edge, a radial-mask fade with no border at all) were tried in
+   pursuit of a more "integrated" feel and rejected. */
 .hero-photo {
-  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 280px;
   height: 280px;
   border-radius: var(--radius-lg);
@@ -346,15 +412,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   display: flex;
   width: fit-content;
   margin-top: var(--space-6);
-}
-
-.eyebrow {
-  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin: 0 0 var(--space-3);
 }
 
 .name {
@@ -373,7 +431,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   max-width: 44ch;
   margin: 0;
   padding-left: var(--space-4);
-  border-left: 2px solid var(--accent);
+  border-left: 1px solid var(--accent);
 }
 
 .role-highlight {
@@ -422,7 +480,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 28px -12px rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 14px 28px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* ---------------------------------------------------------
@@ -448,7 +506,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   flex-direction: column;
   justify-content: flex-start;
   gap: var(--space-4);
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .projects-heading {
@@ -471,7 +529,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .category:hover {
   transform: translateY(-2px);
   border-color: var(--accent-border);
-  box-shadow: 0 14px 28px -18px rgba(var(--accent-rgb), 0.4);
+  box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.4);
 }
 
 .category-toggle {
@@ -538,24 +596,36 @@ ul { list-style: none; margin: 0; padding: 0; }
   transform: translate(-50%, -50%) rotate(90deg) scale(0);
 }
 
+/* Expand/collapse uses the grid-template-rows 0fr->1fr technique instead
+   of animating max-height/padding: those are layout properties that force
+   a reflow on every animation frame (and, with the old fixed max-height:
+   2000px, interpolate through a much larger range than the real content
+   ever needs). grid-template-rows animates the track size directly, and
+   .category-panel-grid's overflow:hidden gives it a 0 automatic minimum
+   size so it can actually collapse to nothing. */
 .category-panel {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--space-4);
-  padding: 0 var(--space-5) var(--space-5);
-  max-height: 0;
+  grid-template-rows: 0fr;
   opacity: 0;
-  overflow: hidden;
-  transition: max-height var(--transition), opacity var(--transition), padding var(--transition);
+  transition: grid-template-rows var(--transition), opacity var(--transition);
 }
 
 .category-panel.is-open {
-  max-height: 2000px;
+  grid-template-rows: 1fr;
   opacity: 1;
 }
 
 .category-panel[hidden] {
   display: none;
+}
+
+.category-panel-grid {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+  padding: 0 var(--space-5) var(--space-5);
 }
 
 /* Project card */
@@ -578,7 +648,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .project-card:hover {
   transform: translateY(-3px);
   border-color: var(--accent-border);
-  box-shadow: 0 12px 24px -12px rgba(var(--accent-rgb), 0.35);
+  box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.35);
 }
 
 .category-panel.is-open .project-card {
@@ -596,6 +666,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .project-thumb {
+  position: relative;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -603,14 +674,32 @@ ul { list-style: none; margin: 0; padding: 0; }
   margin-bottom: var(--space-3);
 }
 
+.project-thumb-pdf-label {
+  position: absolute;
+  bottom: var(--space-2);
+  left: var(--space-2);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
 .project-thumb iframe {
   width: 100%;
   height: 100%;
   border: none;
-  /* The PDF preview is a separate document, so clicks inside it wouldn't
-     otherwise reach the enclosing card-link. Since the toolbar is already
-     hidden, there's no interactive PDF chrome to preserve here anyway. */
-  pointer-events: none;
+  /* Was pointer-events:none so clicks would fall through to the enclosing
+     card-link — but that also blocked scrolling/paging inside the native
+     PDF viewer entirely, which is the actual point of a preview. Letting
+     the iframe capture its own input means a click landing specifically
+     on the thumb no longer opens the file (the title/tags below still
+     do, and the card's hover-lift still fires over the thumb too, since
+     CSS :hover on the ancestor <a> isn't affected by the iframe's
+     pointer-events) — a fair trade for the preview actually being
+     scrollable. */
 }
 
 .project-thumb-placeholder {
@@ -720,6 +809,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   color: var(--text-muted);
   text-align: justify;
   text-align-last: left;
+  hyphens: auto;
   margin: var(--space-4) 0 0;
 }
 
@@ -804,7 +894,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  min-width: 200px;
+  width: 234px;
   padding: var(--space-4) var(--space-5);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -857,14 +947,49 @@ ul { list-style: none; margin: 0; padding: 0; }
     padding: var(--space-6) var(--space-4) var(--space-6);
   }
 
+  /* Below the desktop breakpoint, .main's own side padding (--space-4,
+     16px) is narrower than the toggle's fixed inset (--space-5, 24px),
+     so a viewport-fixed toggle would sit inside the Work accordion's
+     full-width clickable row area at whatever scroll position happens to
+     put a category near the top of the screen — a real touch-target
+     collision, not just a visual one, confirmed by design critique.
+     Switching to position:absolute here makes it scroll away with the
+     page instead of staying pinned, removing the possibility of it ever
+     overlapping Work. It resolves against the initial containing block
+     (there's no positioned ancestor — .theme-toggle-float is a plain
+     `<body>` child, not nested inside .hero), which is deliberate: an
+     earlier version nested it inside <section class="hero reveal">, and
+     .reveal's `transform` on that ancestor silently turned position:fixed
+     into acting like position:absolute relative to .hero on EVERY
+     viewport width, not just mobile — this is exactly the "a transform
+     on any ancestor becomes the containing block for a fixed descendant"
+     gotcha, and it's why the toggle ended up rendered on top of the hero
+     photo instead of the true top-right of the viewport. Do not nest this
+     element inside anything carrying `transform` (including .reveal)
+     ever again. Desktop keeps the persistent fixed toggle unmodified,
+     since .main's wider padding (--space-7, 48px) already clears the
+     toggle's inset there. */
+  .theme-toggle-float {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+  }
+
   .hero {
+    display: flex;
     flex-direction: column;
+    gap: var(--space-5);
     min-height: auto;
-    gap: var(--space-6);
     text-align: left;
   }
 
+  .hero .name,
+  .hero-text {
+    max-width: none;
+  }
+
   .hero-photo {
+    position: static;
     width: 160px;
     height: 160px;
   }
