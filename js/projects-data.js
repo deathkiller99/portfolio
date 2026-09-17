@@ -48,7 +48,7 @@ window.PROJECTS = {
       icon: 'ai',
       detail: {
         type: 'text',
-        content: 'I led an AI tooling initiative in the Enterprise GTM team. I started by building a competitive intelligence agent to make my own analysis and workflow more efficient, then expanded the initiative to build a battlecard generator and internal reporting agent, extending those efficiency gains to other teams.'
+        content: 'Led the AI initiative for the GTM team, improving analysis, reporting, and sales enablement by building and deploying a suite of AI agents spanning competitive intelligence, battlecard generation, and internal reporting workflows.'
       }
     },
     {
@@ -57,7 +57,7 @@ window.PROJECTS = {
       icon: 'pos',
       detail: {
         type: 'text',
-        content: 'I built a business case to decide between launching a full gateway SoftPOS solution or keeping the existing offer, running scenario analysis across 3 offers for the French market by vertical to identify €8.37M in additional potential revenue by 2029.'
+        content: 'I built a business case to decide between launching a full gateway SoftPOS solution or keeping the existing offer, running scenario analysis for the French market to identify €8.37M in additional potential revenue by 2029.'
       }
     }
   ],
